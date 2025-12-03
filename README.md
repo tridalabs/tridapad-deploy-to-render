@@ -11,7 +11,7 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 ## Choose Your Deployment Option
 
 ### 🚀 Production-Ready (This Branch: `production-ready`)
-**Starting at $35/month** - Recommended for:
+**Starting at $92.50/month** - Recommended for:
 - Production workloads
 - Medium to large teams (10+ users)
 - Higher traffic applications
@@ -20,7 +20,7 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 Uses Standard plans with separate worker and scheduler services.
 
 ### 🎯 Low-Cost Starter (`low-cost-starter` branch)
-**Starting at $14-21/month** - Perfect for:
+**Starting at $24.50/month** - Perfect for:
 - Small teams (1-10 users)
 - Testing and development
 - Low-traffic deployments
@@ -36,7 +36,7 @@ Use the button below to deploy TridaPad on Render with the **production-ready co
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/production-ready)
 
-> **Want to minimize costs?** Use the [low-cost-starter deployment](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-starter) ($14-21/month)
+> **Want to minimize costs?** Use the [low-cost-starter deployment](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-starter) ($24.50/month)
 
 Then, in Render Shell of the `tridapad` web service execute the following statement:
 
@@ -54,22 +54,22 @@ If you need help, visit https://tridalabs.com or contact support.
 
 The deployment will create:
 
-- **Web Service** (Standard) - Main TridaPad application server
-- **Worker** (Standard) - Background worker for query execution
-- **Scheduler** (Starter) - Handles scheduled queries and periodic tasks
-- **PostgreSQL Database** (`tridapad-database`, Starter) - Managed database with automatic backups
-- **Key Value** (`tridapad-redis`, Starter) - Managed Redis for caching and job queues with disk-backed persistence
+- **Web Service** (Standard) - Main TridaPad application server (2GB RAM, 1 CPU)
+- **Worker** (Standard) - Background worker for query execution (2GB RAM, 1 CPU)
+- **Scheduler** (Standard) - Handles scheduled queries and periodic tasks (2GB RAM, 1 CPU)
+- **PostgreSQL Database** (Basic) - Managed database with automatic backups (256MB RAM, 1GB storage)
+- **Key Value** (Starter) - Managed Redis for caching and job queues with disk-backed persistence (1GB storage)
 
 ### Cost
 
-Starting at **~$35/month** for a production-ready setup:
-- Web Service (Standard): $7/month
-- Worker (Standard): $7/month
-- Scheduler (Starter): $7/month
-- PostgreSQL (Starter): $7/month
+Starting at **$92.50/month** for a production-ready setup:
+- Web Service (Standard): $25/month
+- Worker (Standard): $25/month
+- Scheduler (Standard): $25/month
+- PostgreSQL (Basic-256mb): $10.50/month
 - Key Value (Starter): $7/month
 
-> **Note:** A free tier is available for testing. Change `plan: starter` to `plan: free` in `render.yaml` for the Key Value service. Free tier has limited storage and doesn't persist data to disk.
+> **Note:** This configuration provides consistent Standard-tier performance for all compute services. Database uses the minimum viable plan.
 
 ## Configuration
 
