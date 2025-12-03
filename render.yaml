@@ -1,0 +1,142 @@
+databases:
+  - name: tridapad
+    databaseName: tridapad
+    user: tridapad
+
+services:
+  # Main TridaPad web service
+  # IMPORTANT: After creating this service, run `render-tridapad create_db` 
+  # in Render Shell to initialize the database.
+  - type: web
+    name: tridapad
+    env: docker
+    plan: standard
+    dockerCommand: render-tridapad server
+    autoDeploy: false
+    envVars:
+      - key: TRIDAPAD_DATABASE_URL
+        fromDatabase:
+          name: tridapad
+          property: connectionString
+      - key: REDIS_HOSTPORT
+        fromService:
+          type: pserv
+          name: tridapad-redis
+          property: hostport
+      - fromGroup: tridapad-shared
+      - fromGroup: tridapad-mail
+      - fromGroup: tridapad-oauth
+
+  # Background worker for query execution and other async tasks
+  - type: worker
+    name: tridapad-worker
+    env: docker
+    plan: standard
+    dockerCommand: render-tridapad worker
+    autoDeploy: false
+    envVars:
+      - key: TRIDAPAD_DATABASE_URL
+        fromDatabase:
+          name: tridapad
+          property: connectionString
+      - key: REDIS_HOSTPORT
+        fromService:
+          type: pserv
+          name: tridapad-redis
+          property: hostport
+      - fromGroup: tridapad-shared
+      - fromGroup: tridapad-mail
+      - fromGroup: tridapad-oauth
+      - key: QUEUES
+        value: "queries,scheduled_queries,schemas"
+
+  # Scheduler for periodic tasks
+  - type: worker
+    name: tridapad-scheduler
+    env: docker
+    dockerCommand: render-tridapad scheduler
+    autoDeploy: false
+    envVars:
+      - key: TRIDAPAD_DATABASE_URL
+        fromDatabase:
+          name: tridapad
+          property: connectionString
+      - key: REDIS_HOSTPORT
+        fromService:
+          type: pserv
+          name: tridapad-redis
+          property: hostport
+      - fromGroup: tridapad-shared
+      - fromGroup: tridapad-mail
+      - fromGroup: tridapad-oauth
+      - key: QUEUES
+        value: "celery"
+      - key: WORKERS_COUNT
+        value: 1
+
+  # Redis instance for caching and job queues
+  - type: pserv
+    name: tridapad-redis
+    env: docker
+    repo: https://github.com/render-examples/redis.git
+    autoDeploy: false
+    disk:
+      name: data
+      mountPath: /var/lib/redis
+      sizeGB: 10
+
+envVarGroups:
+  - name: tridapad-shared
+    envVars:
+      - key: TRIDAPAD_LOG_LEVEL
+        value: "INFO"
+      - key: TRIDAPAD_COOKIE_SECRET
+        generateValue: true
+      - key: TRIDAPAD_SECRET_KEY
+        generateValue: true
+      - key: PYTHONUNBUFFERED
+        value: 0
+      - key: TRIDAPAD_VERSION_CHECK
+        value: "false"
+      - key: TRIDAPAD_ENFORCE_CSRF
+        value: "true"
+      - key: TRIDAPAD_RATELIMIT_ENABLED
+        value: "true"
+
+  # Uncomment and fill the following fields if you wish to set up mailing in TridaPad.
+  # It's recommended to use a mail service like Amazon SES, Mailgun, or SendGrid
+  # to send emails and ensure deliverability.
+  - name: tridapad-mail
+    envVars:
+      # Basic mail server configuration
+#      - key: TRIDAPAD_MAIL_SERVER
+#        value: smtp.example.com
+#      - key: TRIDAPAD_MAIL_PORT
+#        value: 587
+#      - key: TRIDAPAD_MAIL_USE_TLS
+#        value: "true"
+#      - key: TRIDAPAD_MAIL_USE_SSL
+#        value: "false"
+#      - key: TRIDAPAD_MAIL_USERNAME
+#        value: your-smtp-username
+#      - key: TRIDAPAD_MAIL_PASSWORD
+#        value: your-smtp-password
+#      - key: TRIDAPAD_MAIL_DEFAULT_SENDER
+#        value: noreply@yourdomain.com
+      
+      # Optional: Advanced mail configuration
+#      - key: TRIDAPAD_MAIL_ASCII_ATTACHMENTS
+#        value: "false"
+#      - key: TRIDAPAD_MAIL_MAX_EMAILS
+#        value: "100"
+
+  # Google OAuth Configuration (optional)
+  # Uncomment and fill in to enable Google OAuth login
+  - name: tridapad-oauth
+    envVars:
+#      - key: TRIDAPAD_GOOGLE_CLIENT_ID
+#        value: your-google-client-id.apps.googleusercontent.com
+#      - key: TRIDAPAD_GOOGLE_CLIENT_SECRET
+#        value: your-google-client-secret
+#      - key: TRIDAPAD_GOOGLE_OAUTH_ENABLED
+#        value: "true"
