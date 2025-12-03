@@ -56,7 +56,7 @@ The deployment will create:
 
 - **Web Service** (Starter) - Main TridaPad application server (512MB RAM, 0.5 CPU)
 - **Worker + Scheduler** (Starter) - Combined background worker for all async jobs and scheduling (512MB RAM, 0.5 CPU)
-- **PostgreSQL Database** (Starter) - Managed database with automatic backups (1GB storage, 1GB RAM)
+- **PostgreSQL Database** - Managed database with automatic backups
 - **Key Value** (Free) - Managed Redis for caching and job queues (100MB, no persistence)
 
 ### Cost Breakdown
@@ -67,36 +67,38 @@ The deployment will create:
 | Service | Plan | Specs | Cost |
 |---------|------|-------|------|
 | Web Service | Starter | 512MB RAM, 0.5 CPU | $7/month |
-| Worker | Starter | 512MB RAM, 0.5 CPU | $7/month |
-| PostgreSQL | Starter | 1GB storage, 1GB RAM | $7/month |
+| Worker + Scheduler | Starter | 512MB RAM, 0.5 CPU | $7/month |
+| PostgreSQL | Default | Render's default plan | Varies* |
 | Redis | Free | 100MB, no persistence | FREE |
 
-**Total: $21/month** (or $14/month if using external Redis)
+**Total: ~$14-21/month** (varies based on database plan selected)
+
+*Database plan will be selected during deployment based on Render's current offerings.
 
 #### Mid-Tier Setup
-**$57/month** - Better for growing teams with moderate traffic:
+**Better for growing teams with moderate traffic:**
 
 | Service | Plan | Specs | Cost |
 |---------|------|-------|------|
 | Web Service | Standard | 2GB RAM, 1 CPU | $25/month |
 | Worker | Standard | 2GB RAM, 1 CPU | $25/month |
-| PostgreSQL | Starter | 1GB storage, 1GB RAM | $7/month |
+| PostgreSQL | Upgrade as needed | Varies | $7-20/month |
 | Redis | Starter | 1GB storage, persistence | $7/month |
 
-**Total: $64/month**
+**Total: ~$64-77/month**
 
 #### Production Setup
-**$117+/month** - High-traffic deployments with dedicated services:
+**High-traffic deployments with dedicated services:**
 
 | Service | Plan | Specs | Cost |
 |---------|------|-------|------|
 | Web Service | Pro | 4GB RAM, 2 CPU | $85/month |
 | Worker | Standard | 2GB RAM, 1 CPU | $25/month |
-| Scheduler (separate) | Starter | 512MB RAM, 0.5 CPU | $7/month |
+| Scheduler (separate) | Standard | 2GB RAM, 1 CPU | $25/month |
 | PostgreSQL | Standard | 10GB storage, 4GB RAM | $20/month |
 | Redis | Standard | 5GB storage | $20/month |
 
-**Total: $157/month**
+**Total: ~$175/month**
 
 ### Performance Upgrade Path
 
