@@ -3,18 +3,40 @@
 This repository can be used to deploy [TridaPad](https://tridalabs.com) on Render.
 
 - It uses the [official TridaPad Docker image](https://hub.docker.com/r/tridalabs/tridapad) with an entrypoint script that customizes TridaPad for Render.
-- It creates a Web Service on **Standard** plan for TridaPad and two [Background Workers](https://render.com/docs/background-workers) for job processing.
+- It creates a Web Service and Background Worker for job processing.
 - [Render Databases](https://render.com/docs/databases) are used to spin up a fully managed PostgreSQL instance.
 - It uses [Render Key Value](https://render.com/docs/key-value) (managed Redis) for caching and asynchronous job queues.
 - It provides template [environment groups](https://render.com/docs/yaml-spec#environment-groups) for optionally setting up mailing and OAuth in TridaPad.
+
+## Choose Your Deployment Option
+
+### 🎯 Low-Cost Option (This Branch: `low-cost-option`)
+**Starting at $14-21/month** - Perfect for:
+- Small teams (1-10 users)
+- Testing and development
+- Low-traffic deployments
+- Budget-conscious startups
+
+**Easily upgradable** as your needs grow.
+
+### 🚀 Production-Ready Option (`main` branch)
+**Starting at $35/month** - Recommended for:
+- Medium to large teams
+- Production workloads
+- Higher traffic applications
+- Businesses requiring better performance from day one
+
+[Switch to main branch](https://github.com/tridalabs/tridapad-deploy-to-render/tree/main) for the production-ready configuration.
 
 ## Deployment
 
 ### One Click
 
-Use the button below to deploy TridaPad on Render.
+Use the button below to deploy TridaPad on Render with the **low-cost configuration**.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-option)
+
+> **Want the production-ready setup?** Use the [main branch deployment](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render)
 
 Then, in Render Shell of the `tridapad` web service execute the following statement:
 
