@@ -11,7 +11,7 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 ## Choose Your Deployment Option
 
 ### 🚀 Production-Ready (This Branch: `production-ready`)
-**Starting at $35/month** - Recommended for:
+**Starting at $82-95/month** - Recommended for:
 - Production workloads
 - Medium to large teams (10+ users)
 - Higher traffic applications
@@ -54,22 +54,24 @@ If you need help, visit https://tridalabs.com or contact support.
 
 The deployment will create:
 
-- **Web Service** (Standard) - Main TridaPad application server
-- **Worker** (Standard) - Background worker for query execution
-- **Scheduler** (Starter) - Handles scheduled queries and periodic tasks
-- **PostgreSQL Database** (`tridapad-database`, Starter) - Managed database with automatic backups
-- **Key Value** (`tridapad-redis`, Starter) - Managed Redis for caching and job queues with disk-backed persistence
+- **Web Service** (Standard) - Main TridaPad application server (2GB RAM, 1 CPU)
+- **Worker** (Standard) - Background worker for query execution (2GB RAM, 1 CPU)
+- **Scheduler** (Standard) - Handles scheduled queries and periodic tasks (2GB RAM, 1 CPU)
+- **PostgreSQL Database** - Managed database with automatic backups
+- **Key Value** (Starter) - Managed Redis for caching and job queues with persistence (1GB storage)
 
 ### Cost
 
-Starting at **~$35/month** for a production-ready setup:
-- Web Service (Standard): $7/month
-- Worker (Standard): $7/month
-- Scheduler (Starter): $7/month
-- PostgreSQL (Starter): $7/month
+Starting at **~$82/month** for a production-ready setup:
+- Web Service (Standard): $25/month
+- Worker (Standard): $25/month
+- Scheduler (Standard): $25/month
+- PostgreSQL (Default): $7-20/month (varies)*
 - Key Value (Starter): $7/month
 
-> **Note:** A free tier is available for testing. Change `plan: starter` to `plan: free` in `render.yaml` for the Key Value service. Free tier has limited storage and doesn't persist data to disk.
+*Database plan will be selected during deployment based on Render's current offerings.
+
+> **Note:** All compute services use Standard tier for consistent performance. You can upgrade individual services as needed.
 
 ## Configuration
 
