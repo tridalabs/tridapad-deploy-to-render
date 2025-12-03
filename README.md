@@ -11,7 +11,7 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 ## Choose Your Deployment Option
 
 ### 🎯 Low-Cost Starter (This Branch: `low-cost-starter`)
-**Starting at $24.50/month** - Perfect for:
+**Starting at $14-21/month** - Perfect for:
 - Small teams (1-10 users)
 - Testing and development
 - Low-traffic deployments
@@ -20,7 +20,7 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 **Easily upgradable** as your needs grow.
 
 ### 🚀 Production-Ready (`production-ready` branch)
-**Starting at $92.50/month** - Recommended for:
+**Starting at $35/month** - Recommended for:
 - Medium to large teams
 - Production workloads
 - Higher traffic applications
@@ -56,47 +56,47 @@ The deployment will create:
 
 - **Web Service** (Starter) - Main TridaPad application server (512MB RAM, 0.5 CPU)
 - **Worker + Scheduler** (Starter) - Combined background worker for all async jobs and scheduling (512MB RAM, 0.5 CPU)
-- **PostgreSQL Database** (Basic) - Managed database with automatic backups (256MB RAM, 1GB storage)
+- **PostgreSQL Database** (Starter) - Managed database with automatic backups (1GB storage, 1GB RAM)
 - **Key Value** (Free) - Managed Redis for caching and job queues (100MB, no persistence)
 
 ### Cost Breakdown
 
 #### Minimal Cost Setup (Current Configuration)
-**Starting at $24.50/month** - Great for small teams, testing, and low-traffic deployments:
+**Starting at $14/month** - Great for small teams, testing, and low-traffic deployments:
 
 | Service | Plan | Specs | Cost |
 |---------|------|-------|------|
 | Web Service | Starter | 512MB RAM, 0.5 CPU | $7/month |
-| Worker + Scheduler | Starter | 512MB RAM, 0.5 CPU | $7/month |
-| PostgreSQL | Basic-256mb | 256MB RAM, 1GB storage | $10.50/month |
+| Worker | Starter | 512MB RAM, 0.5 CPU | $7/month |
+| PostgreSQL | Starter | 1GB storage, 1GB RAM | $7/month |
 | Redis | Free | 100MB, no persistence | FREE |
 
-**Total: $24.50/month** (or upgrade Redis to Starter for $7/month = $31.50/month total)
+**Total: $21/month** (or $14/month if using external Redis)
 
 #### Mid-Tier Setup
-**$60.50/month** - Better for growing teams with moderate traffic:
+**$57/month** - Better for growing teams with moderate traffic:
 
 | Service | Plan | Specs | Cost |
 |---------|------|-------|------|
 | Web Service | Standard | 2GB RAM, 1 CPU | $25/month |
 | Worker | Standard | 2GB RAM, 1 CPU | $25/month |
-| PostgreSQL | Basic-256mb | 256MB RAM, 1GB storage | $10.50/month |
+| PostgreSQL | Starter | 1GB storage, 1GB RAM | $7/month |
 | Redis | Starter | 1GB storage, persistence | $7/month |
 
-**Total: $67.50/month**
+**Total: $64/month**
 
 #### Production Setup
-**$130+/month** - High-traffic deployments with dedicated services:
+**$117+/month** - High-traffic deployments with dedicated services:
 
 | Service | Plan | Specs | Cost |
 |---------|------|-------|------|
 | Web Service | Pro | 4GB RAM, 2 CPU | $85/month |
 | Worker | Standard | 2GB RAM, 1 CPU | $25/month |
-| Scheduler (separate) | Standard | 2GB RAM, 1 CPU | $25/month |
+| Scheduler (separate) | Starter | 512MB RAM, 0.5 CPU | $7/month |
 | PostgreSQL | Standard | 10GB storage, 4GB RAM | $20/month |
 | Redis | Standard | 5GB storage | $20/month |
 
-**Total: $175/month**
+**Total: $157/month**
 
 ### Performance Upgrade Path
 

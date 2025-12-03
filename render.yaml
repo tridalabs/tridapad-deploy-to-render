@@ -1,10 +1,9 @@
 databases:
-  # PostgreSQL database - Basic plan for cost optimization
+  # PostgreSQL database - Starter plan recommended for persistence
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
-    plan: basic  # Basic-256mb plan - $10.50/month, 256MB RAM, 1GB storage
-    # Upgrade to 'standard' for more storage and RAM when data grows
+    # Upgrade to 'standard' for 10GB storage and 4GB RAM when data grows
 
 services:
   # Render managed Redis service for caching and job queues
