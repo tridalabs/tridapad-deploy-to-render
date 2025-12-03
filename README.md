@@ -112,25 +112,55 @@ Increase the number of worker instances to handle more concurrent queries:
 
 ## Migrating from Self-Hosted
 
-If you're migrating from an existing TridaPad installation:
+If you're migrating from an existing TridaPad installation and would like to get all the database connections details:
 
-1. **Backup your database:**
-   ```bash
-   pg_dump your_database > tridapad_backup.sql
-   ```
+### Step 1: Get Your Existing Secret Keys (BEFORE Deploying)
 
-2. **Deploy to Render** using this repository
+⚠️ **CRITICAL:** You **MUST** preserve your existing secret keys before deploying to Render.
 
-3. **Initialize Render database:**
-   ```bash
-   render-tridapad create_db
-   ```
+From your self-hosted server, retrieve these values from your `.env` file:
+```bash
+# On your EC2/self-hosted server
+grep TRIDAPAD_SECRET_KEY .env
+grep TRIDAPAD_COOKIE_SECRET .env
+```
 
-4. **Import your data:**
-   - Get your Render database external URL from dashboard
-   - Import: `psql "postgres://..." < tridapad_backup.sql`
+Copy these exact values - you'll need them in the next step.
 
-5. **Update DNS** to point to your new Render service
+**Why this matters:**
+- `TRIDAPAD_SECRET_KEY` encrypts sensitive data in your database (data source credentials, API keys)
+- If you use a different key, TridaPad **cannot decrypt** existing data sources
+- All your configured database connections will be **permanently broken**
+
+### Step 2: Backup Your Existing Self-hosted TridaPad Database
+
+```bash
+pg_dump your_database > tridapad_backup.sql
+```
+
+### Step 3: Deploy to Render with Your Keys
+
+1. Click the "Deploy to Render" button
+2. **BEFORE clicking "Apply"**, edit the `tridapad-shared` environment group
+3. **Replace** the auto-generated values:
+   - Delete the generated `TRIDAPAD_SECRET_KEY` value
+   - Paste your **existing** `TRIDAPAD_SECRET_KEY` from Step 1
+   - Delete the generated `TRIDAPAD_COOKIE_SECRET` value  
+   - Paste your **existing** `TRIDAPAD_COOKIE_SECRET` from Step 1
+4. Now click "Apply" to deploy
+
+### Step 4: Import Your Data
+
+**Do NOT initialize the database** - your backup already has the schema.
+
+Get your Render PostgreSQL external connection string from the dashboard, then:
+```bash
+psql "postgresql://user:pass@host/database" < tridapad_backup.sql
+```
+
+### Step 5: Update DNS
+
+Point your domain to your new Render service URL.
 
 ## Troubleshooting
 
