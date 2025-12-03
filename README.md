@@ -5,7 +5,7 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 - It uses the [official TridaPad Docker image](https://hub.docker.com/r/tridalabs/tridapad) with an entrypoint script that customizes TridaPad for Render.
 - It creates a Web Service on **Standard** plan for TridaPad and two [Background Workers](https://render.com/docs/background-workers) for job processing.
 - [Render Databases](https://render.com/docs/databases) are used to spin up a fully managed PostgreSQL instance.
-- It uses [Redis](https://render.com/docs/deploy-redis) for asynchronous jobs.
+- It uses [Render Key Value](https://render.com/docs/key-value) (managed Redis) for caching and asynchronous job queues.
 - It provides template [environment groups](https://render.com/docs/yaml-spec#environment-groups) for optionally setting up mailing and OAuth in TridaPad.
 
 ## Deployment
@@ -35,8 +35,8 @@ The deployment will create:
 - **Web Service** (Standard) - Main TridaPad application server
 - **Worker** (Standard) - Background worker for query execution
 - **Scheduler** (Starter) - Handles scheduled queries and periodic tasks
-- **PostgreSQL Database** (Starter) - Managed database with automatic backups
-- **Redis** (Starter) - Cache and job queue with persistent storage
+- **PostgreSQL Database** (`tridapad-database`, Starter) - Managed database with automatic backups
+- **Key Value** (`tridapad-redis`, Starter) - Managed Redis for caching and job queues with disk-backed persistence
 
 ### Cost
 
@@ -45,7 +45,9 @@ Starting at **~$35/month** for a production-ready setup:
 - Worker (Standard): $7/month
 - Scheduler (Starter): $7/month
 - PostgreSQL (Starter): $7/month
-- Redis (Starter): $7/month
+- Key Value (Starter): $7/month
+
+> **Note:** A free tier is available for testing. Change `plan: starter` to `plan: free` in `render.yaml` for the Key Value service. Free tier has limited storage and doesn't persist data to disk.
 
 ## Configuration
 
@@ -170,7 +172,8 @@ Point your domain to your new Render service URL.
 - Verify database service is running
 
 ### Workers Not Processing Queries
-- Check Redis is running
+- Check Key Value service is running and connected
+- Verify `TRIDAPAD_REDIS_URL` environment variable is set correctly
 - Verify `QUEUES` environment variable is set
 - Review worker logs for errors
 
