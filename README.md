@@ -59,6 +59,7 @@ After deployment, you **must** initialize the database:
 2. Open the **Shell** tab
 3. Run: `render-tridapad create_db`
 4. Wait for initialization to complete (~1-2 minutes)
+5. **Important:** Wait an additional 5 minutes for the service to fully restart and apply changes before accessing the web UI
 
 ### Optional: Email Configuration
 
