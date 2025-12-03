@@ -21,8 +21,7 @@ services:
   - type: web
     name: tridapad
     env: docker
-    plan: starter  # 512MB RAM, 0.5 CPU
-    # Upgrade to 'standard' for 2GB RAM, 1 CPU - better for multiple concurrent users
+    plan: standard  # 2GB RAM, 1 CPU
     # Upgrade to 'pro' for 4GB RAM, 2 CPU - production workloads with heavy traffic
     dockerCommand: render-tridapad server
     autoDeploy: false
