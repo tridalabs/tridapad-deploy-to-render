@@ -4,6 +4,13 @@ databases:
     user: tridapad
 
 services:
+  # Render managed Redis service for caching and job queues
+  - type: keyvalue
+    name: tridapad-redis
+    ipAllowList: []  # Only allow internal connections
+    plan: starter  # Change to 'free' for testing or see https://render.com/pricing
+    maxmemoryPolicy: noeviction  # Don't evict data for job queues
+
   # Main TridaPad web service
   # IMPORTANT: After creating this service, run `render-tridapad create_db` 
   # in Render Shell to initialize the database.
@@ -18,11 +25,11 @@ services:
         fromDatabase:
           name: tridapad-database
           property: connectionString
-      - key: REDIS_HOSTPORT
+      - key: TRIDAPAD_REDIS_URL
         fromService:
-          type: pserv
+          type: keyvalue
           name: tridapad-redis
-          property: hostport
+          property: connectionString
       - fromGroup: tridapad-shared
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
@@ -39,11 +46,11 @@ services:
         fromDatabase:
           name: tridapad-database
           property: connectionString
-      - key: REDIS_HOSTPORT
+      - key: TRIDAPAD_REDIS_URL
         fromService:
-          type: pserv
+          type: keyvalue
           name: tridapad-redis
-          property: hostport
+          property: connectionString
       - fromGroup: tridapad-shared
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
@@ -61,11 +68,11 @@ services:
         fromDatabase:
           name: tridapad-database
           property: connectionString
-      - key: REDIS_HOSTPORT
+      - key: TRIDAPAD_REDIS_URL
         fromService:
-          type: pserv
+          type: keyvalue
           name: tridapad-redis
-          property: hostport
+          property: connectionString
       - fromGroup: tridapad-shared
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
@@ -73,17 +80,6 @@ services:
         value: "celery"
       - key: WORKERS_COUNT
         value: 1
-
-  # Redis instance for caching and job queues
-  - type: pserv
-    name: tridapad-redis
-    env: docker
-    repo: https://github.com/render-examples/redis.git
-    autoDeploy: false
-    disk:
-      name: data
-      mountPath: /var/lib/redis
-      sizeGB: 10
 
 envVarGroups:
   - name: tridapad-shared

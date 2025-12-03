@@ -6,13 +6,5 @@ export PYTHONUNBUFFERED=1
 # Set TridaPad host from Render's environment variable
 export TRIDAPAD_HOST="$RENDER_EXTERNAL_HOSTNAME"
 
-# Configure Redis URL from Render's Redis service (required)
-if [ -z "$REDIS_HOSTPORT" ]; then
-    echo "ERROR: REDIS_HOSTPORT environment variable is not set"
-    echo "Please ensure Redis service is connected in Render"
-    exit 1
-fi
-export TRIDAPAD_REDIS_URL="redis://${REDIS_HOSTPORT}/0"
-
 # Execute the main docker-entrypoint script with passed arguments
 exec /app/bin/docker-entrypoint "$@"
