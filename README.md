@@ -24,7 +24,7 @@ $ render-tridapad create_db
 
 ### Manual
 
-See the guide at https://docs.tridalabs.com/deployment/render (coming soon).
+See the complete deployment guide at https://docs.tridalabs.com/self-hosted/deploy-to-render/
 
 If you need help, visit https://tridalabs.com or contact support.
 
