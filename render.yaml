@@ -66,8 +66,8 @@ services:
   - type: worker
     name: tridapad-scheduler
     env: docker
-    plan: starter  # 512MB RAM, 0.5 CPU - sufficient for scheduling tasks
-    # Upgrade to 'standard' for 2GB RAM, 1 CPU if needed
+    plan: standard  # 2GB RAM, 1 CPU - matches worker for consistency
+    # Upgrade to 'pro' for 4GB RAM, 2 CPU if needed
     dockerCommand: render-tridapad scheduler
     autoDeploy: false
     envVars:
