@@ -32,22 +32,61 @@ If you need help, visit https://tridalabs.com or contact support.
 
 The deployment will create:
 
-- **Web Service** (Standard) - Main TridaPad application server
-- **Worker** (Standard) - Background worker for query execution
-- **Scheduler** (Starter) - Handles scheduled queries and periodic tasks
-- **PostgreSQL Database** (`tridapad-database`, Starter) - Managed database with automatic backups
-- **Key Value** (`tridapad-redis`, Starter) - Managed Redis for caching and job queues with disk-backed persistence
+- **Web Service** (Starter) - Main TridaPad application server (512MB RAM, 0.5 CPU)
+- **Worker + Scheduler** (Starter) - Combined background worker for all async jobs and scheduling (512MB RAM, 0.5 CPU)
+- **PostgreSQL Database** (Starter) - Managed database with automatic backups (1GB storage, 1GB RAM)
+- **Key Value** (Free) - Managed Redis for caching and job queues (100MB, no persistence)
 
-### Cost
+### Cost Breakdown
 
-Starting at **~$35/month** for a production-ready setup:
-- Web Service (Standard): $7/month
-- Worker (Standard): $7/month
-- Scheduler (Starter): $7/month
-- PostgreSQL (Starter): $7/month
-- Key Value (Starter): $7/month
+#### Minimal Cost Setup (Current Configuration)
+**Starting at $14/month** - Great for small teams, testing, and low-traffic deployments:
 
-> **Note:** A free tier is available for testing. Change `plan: starter` to `plan: free` in `render.yaml` for the Key Value service. Free tier has limited storage and doesn't persist data to disk.
+| Service | Plan | Specs | Cost |
+|---------|------|-------|------|
+| Web Service | Starter | 512MB RAM, 0.5 CPU | $7/month |
+| Worker | Starter | 512MB RAM, 0.5 CPU | $7/month |
+| PostgreSQL | Starter | 1GB storage, 1GB RAM | $7/month |
+| Redis | Free | 100MB, no persistence | FREE |
+
+**Total: $21/month** (or $14/month if using external Redis)
+
+#### Mid-Tier Setup
+**$57/month** - Better for growing teams with moderate traffic:
+
+| Service | Plan | Specs | Cost |
+|---------|------|-------|------|
+| Web Service | Standard | 2GB RAM, 1 CPU | $25/month |
+| Worker | Standard | 2GB RAM, 1 CPU | $25/month |
+| PostgreSQL | Starter | 1GB storage, 1GB RAM | $7/month |
+| Redis | Starter | 1GB storage, persistence | $7/month |
+
+**Total: $64/month**
+
+#### Production Setup
+**$117+/month** - High-traffic deployments with dedicated services:
+
+| Service | Plan | Specs | Cost |
+|---------|------|-------|------|
+| Web Service | Pro | 4GB RAM, 2 CPU | $85/month |
+| Worker | Standard | 2GB RAM, 1 CPU | $25/month |
+| Scheduler (separate) | Starter | 512MB RAM, 0.5 CPU | $7/month |
+| PostgreSQL | Standard | 10GB storage, 4GB RAM | $20/month |
+| Redis | Standard | 5GB storage | $20/month |
+
+**Total: $157/month**
+
+### Performance Upgrade Path
+
+Start with the minimal setup and upgrade components as needed:
+
+1. **First bottleneck (10-20 users)**: Upgrade Web Service to Standard ($25/mo) for better response times
+2. **Heavy queries**: Upgrade Worker to Standard ($25/mo) for faster background processing
+3. **Data persistence**: Upgrade Redis from Free to Starter ($7/mo) for persistent caching
+4. **Growing data**: Upgrade PostgreSQL to Standard ($20/mo) when approaching 1GB storage
+5. **High traffic**: Split worker into separate Worker + Scheduler services on Standard plans
+
+> **Note:** You can upgrade/downgrade any service independently through the Render dashboard. Changes take effect immediately with minimal downtime.
 
 ## Configuration
 

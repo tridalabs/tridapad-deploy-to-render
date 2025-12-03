@@ -1,14 +1,18 @@
 databases:
+  # PostgreSQL database - Starter plan recommended for persistence
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
+    # Upgrade to 'standard' for 10GB storage and 4GB RAM when data grows
 
 services:
   # Render managed Redis service for caching and job queues
   - type: keyvalue
     name: tridapad-redis
     ipAllowList: []  # Only allow internal connections
-    plan: starter  # Change to 'free' for testing or see https://render.com/pricing
+    plan: free  # Limited to 100MB, no persistence
+    # Upgrade to 'starter' for data persistence and 1GB storage
+    # Upgrade to 'standard' for 5GB storage and better performance
     maxmemoryPolicy: noeviction  # Don't evict data for job queues
 
   # Main TridaPad web service
@@ -17,7 +21,9 @@ services:
   - type: web
     name: tridapad
     env: docker
-    plan: standard
+    plan: starter  # 512MB RAM, 0.5 CPU
+    # Upgrade to 'standard' for 2GB RAM, 1 CPU - better for multiple concurrent users
+    # Upgrade to 'pro' for 4GB RAM, 2 CPU - production workloads with heavy traffic
     dockerCommand: render-tridapad server
     autoDeploy: false
     envVars:
@@ -34,11 +40,14 @@ services:
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
 
-  # Background worker for query execution and other async tasks
+  # Combined background worker for query execution, scheduled tasks, and periodic jobs
+  # This single worker handles all background processing to minimize costs
   - type: worker
-    name: tridapad-worker
+    name: tridapad-worker-scheduler
     env: docker
-    plan: standard
+    plan: starter  # 512MB RAM, 0.5 CPU
+    # Upgrade to 'standard' for 2GB RAM, 1 CPU - better for heavy query workloads
+    # For high-traffic: Split into separate 'worker' and 'scheduler' services for better performance
     dockerCommand: render-tridapad worker
     autoDeploy: false
     envVars:
@@ -55,29 +64,7 @@ services:
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
       - key: QUEUES
-        value: "queries,scheduled_queries,schemas"
-
-  # Scheduler for periodic tasks
-  - type: worker
-    name: tridapad-scheduler
-    env: docker
-    dockerCommand: render-tridapad scheduler
-    autoDeploy: false
-    envVars:
-      - key: TRIDAPAD_DATABASE_URL
-        fromDatabase:
-          name: tridapad-database
-          property: connectionString
-      - key: TRIDAPAD_REDIS_URL
-        fromService:
-          type: keyvalue
-          name: tridapad-redis
-          property: connectionString
-      - fromGroup: tridapad-shared
-      - fromGroup: tridapad-mail
-      - fromGroup: tridapad-oauth
-      - key: QUEUES
-        value: "celery"
+        value: "queries,scheduled_queries,schemas,celery"  # All queues handled by one worker
       - key: WORKERS_COUNT
         value: 1
 
