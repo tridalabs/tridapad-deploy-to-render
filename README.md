@@ -10,7 +10,7 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 
 ## Choose Your Deployment Option
 
-### 🎯 Low-Cost Option (This Branch: `low-cost-option`)
+### 🎯 Starter Plan (This Branch: `starter`)
 **Starting at $14-21/month** - Perfect for:
 - Small teams (1-10 users)
 - Testing and development
@@ -19,24 +19,24 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 
 **Easily upgradable** as your needs grow.
 
-### 🚀 Production-Ready Option (`main` branch)
+### 🚀 Production-Ready (`production-ready` branch)
 **Starting at $35/month** - Recommended for:
 - Medium to large teams
 - Production workloads
 - Higher traffic applications
 - Businesses requiring better performance from day one
 
-[Switch to main branch](https://github.com/tridalabs/tridapad-deploy-to-render/tree/main) for the production-ready configuration.
+[Switch to production-ready branch](https://github.com/tridalabs/tridapad-deploy-to-render/tree/production-ready) for the production configuration.
 
 ## Deployment
 
 ### One Click
 
-Use the button below to deploy TridaPad on Render with the **low-cost configuration**.
+Use the button below to deploy TridaPad on Render with the **starter configuration**.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-option)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/starter)
 
-> **Want the production-ready setup?** Use the [main branch deployment](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render)
+> **Want the production-ready setup?** Use the [production-ready deployment](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/production-ready)
 
 Then, in Render Shell of the `tridapad` web service execute the following statement:
 
