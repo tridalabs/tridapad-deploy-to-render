@@ -2,13 +2,16 @@ databases:
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
+    plan: starter  # $7/month - 1GB storage, 1GB RAM
+    # Upgrade to 'standard' for 10GB storage and 4GB RAM when data grows
 
 services:
   # Render managed Redis service for caching and job queues
   - type: keyvalue
     name: tridapad-redis
     ipAllowList: []  # Only allow internal connections
-    plan: starter  # Change to 'free' for testing or see https://render.com/pricing
+    plan: starter  # 1GB storage with persistence
+    # Upgrade to 'standard' for 5GB storage and better performance
     maxmemoryPolicy: noeviction  # Don't evict data for job queues
 
   # Main TridaPad web service
@@ -17,7 +20,8 @@ services:
   - type: web
     name: tridapad
     env: docker
-    plan: standard
+    plan: standard  # 2GB RAM, 1 CPU - good for multiple concurrent users
+    # Upgrade to 'pro' for 4GB RAM, 2 CPU - production workloads with heavy traffic
     dockerCommand: render-tridapad server
     autoDeploy: false
     envVars:
@@ -38,7 +42,8 @@ services:
   - type: worker
     name: tridapad-worker
     env: docker
-    plan: standard
+    plan: standard  # 2GB RAM, 1 CPU - handles query workloads
+    # Upgrade to 'pro' for 4GB RAM, 2 CPU for very heavy query processing
     dockerCommand: render-tridapad worker
     autoDeploy: false
     envVars:
@@ -61,6 +66,8 @@ services:
   - type: worker
     name: tridapad-scheduler
     env: docker
+    plan: starter  # 512MB RAM, 0.5 CPU - sufficient for scheduling tasks
+    # Upgrade to 'standard' for 2GB RAM, 1 CPU if needed
     dockerCommand: render-tridapad scheduler
     autoDeploy: false
     envVars:
