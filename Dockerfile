@@ -1,6 +1,5 @@
 FROM tridalabs/tridapad:latest
 
-COPY ./render-tridapad /bin/render-tridapad
-RUN chmod +x /bin/render-tridapad
+COPY --chmod=755 ./render-tridapad /usr/local/bin/render-tridapad
 
-ENTRYPOINT ["/bin/render-tridapad"]
+ENTRYPOINT ["/usr/local/bin/render-tridapad"]
