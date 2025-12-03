@@ -10,7 +10,7 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 
 ## Choose Your Deployment Option
 
-### 🚀 Production-Ready (This Branch: `main`)
+### 🚀 Production-Ready (This Branch: `production-ready`)
 **Starting at $35/month** - Recommended for:
 - Production workloads
 - Medium to large teams (10+ users)
@@ -19,14 +19,14 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 
 Uses Standard plans with separate worker and scheduler services.
 
-### 🎯 Low-Cost Option (`low-cost-option` branch)
+### 🎯 Starter Plan (`starter` branch)
 **Starting at $14-21/month** - Perfect for:
 - Small teams (1-10 users)
 - Testing and development
 - Low-traffic deployments
 - Budget-conscious startups
 
-[Switch to low-cost-option branch](https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-option) for the budget-friendly configuration with easy upgrade paths.
+[Switch to starter branch](https://github.com/tridalabs/tridapad-deploy-to-render/tree/starter) for the budget-friendly configuration with easy upgrade paths.
 
 ## Deployment
 
@@ -34,9 +34,9 @@ Uses Standard plans with separate worker and scheduler services.
 
 Use the button below to deploy TridaPad on Render with the **production-ready configuration**.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/production-ready)
 
-> **Want to minimize costs?** Use the [low-cost deployment](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-option) ($14-21/month)
+> **Want to minimize costs?** Use the [starter deployment](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/starter) ($14-21/month)
 
 Then, in Render Shell of the `tridapad` web service execute the following statement:
 
