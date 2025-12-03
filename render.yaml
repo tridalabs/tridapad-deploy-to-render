@@ -2,8 +2,6 @@ databases:
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
-    plan: starter  # $7/month - 1GB storage, 1GB RAM
-    # Upgrade to 'standard' for 10GB storage and 4GB RAM when data grows
 
 services:
   # Render managed Redis service for caching and job queues
