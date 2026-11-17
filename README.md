@@ -54,11 +54,13 @@ If you need help, visit https://tridalabs.com or contact support.
 
 The deployment will create:
 
-- **Web Service** (Standard) - Main TridaPad application server (2GB RAM, 1 CPU)
-- **Worker** (Standard) - Background worker for query execution (2GB RAM, 1 CPU)
-- **Scheduler** (Standard) - Handles scheduled queries and periodic tasks (2GB RAM, 1 CPU)
-- **PostgreSQL Database** - Managed database with automatic backups
-- **Key Value** (Starter) - Managed Redis for caching and job queues with persistence (1GB storage)
+- **Web Service** (2 CPU, 4 GB) - Main TridaPad application server
+- **Worker** (2 CPU, 4 GB) - Background worker for query execution
+- **Scheduler** (1 CPU, 2 GB) - Handles scheduled queries and periodic tasks
+- **PostgreSQL Database** - Managed database with automatic backups (2 CPU, 4 GB)
+- **Key Value** (5 GB) - Managed Redis for caching and job queues with persistence
+- **AgentSQL** (2 CPU, 4 GB) - AI assistant for TridaPad. Run `render-agentsql create_db` in its Shell after the first deploy
+- **tridapad-mcp** (1 CPU, 2 GB) - MCP tool server for TridaPad's data
 
 ### Cost
 
