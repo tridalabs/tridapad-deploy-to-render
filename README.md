@@ -58,6 +58,8 @@ The deployment will create:
 - **Worker + Scheduler** (Starter) - Combined background worker for all async jobs and scheduling (512MB RAM, 0.5 CPU)
 - **PostgreSQL Database** - Managed database with automatic backups
 - **Key Value** (Free) - Managed Redis for caching and job queues (100MB, no persistence)
+- **AgentSQL** (Starter) - AI assistant for TridaPad (512MB RAM, 0.5 CPU). Run `render-agentsql create_db` in its Shell after the first deploy
+- **tridapad-mcp** (Starter) - MCP tool server for TridaPad's data (512MB RAM, 0.5 CPU)
 
 ### Cost Breakdown
 
