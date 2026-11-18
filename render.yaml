@@ -76,7 +76,7 @@ services:
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
       - key: QUEUES
-        value: "queries,scheduled_queries,schemas"
+        value: "queries,scheduled_queries,schemas,periodic,emails,default"
 
   # Scheduler for periodic tasks (separate service in production)
   - type: worker
@@ -98,10 +98,6 @@ services:
       - fromGroup: tridapad-shared
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
-      - key: QUEUES
-        value: "celery"
-      - key: WORKERS_COUNT
-        value: 1
 
   # AgentSQL: natural-language questions to SQL and dashboards
   # IMPORTANT: After creating this service, run `render-agentsql create_db`
