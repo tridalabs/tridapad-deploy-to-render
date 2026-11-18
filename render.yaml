@@ -1,28 +1,25 @@
 databases:
-  # PostgreSQL database - Starter plan recommended for persistence
+  # Shared PostgreSQL for TridaPad and AgentSQL (AgentSQL uses its own schema)
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
-    # Upgrade to 'standard' for 10GB storage and 4GB RAM when data grows
+    plan: basic-256mb  # PLAN TO VERIFY; Starter-level for dev
 
 services:
-  # Render managed Redis service for caching and job queues
+  # Shared managed Redis for TridaPad and AgentSQL
   - type: keyvalue
     name: tridapad-redis
     ipAllowList: []  # Only allow internal connections
-    plan: free  # Limited to 100MB, no persistence
-    # Upgrade to 'starter' for data persistence and 1GB storage
-    # Upgrade to 'standard' for 5GB storage and better performance
+    plan: starter  # PLAN TO VERIFY; Starter keeps data (the free plan does not)
     maxmemoryPolicy: noeviction  # Don't evict data for job queues
 
   # Main TridaPad web service
-  # IMPORTANT: After creating this service, run `render-tridapad create_db` 
+  # IMPORTANT: After creating this service, run `render-tridapad create_db`
   # in Render Shell to initialize the database.
   - type: web
     name: tridapad
     env: docker
-    plan: standard  # 2GB RAM, 1 CPU
-    # Upgrade to 'pro' for 4GB RAM, 2 CPU - production workloads with heavy traffic
+    plan: starter  # PLAN TO VERIFY; dev size
     dockerCommand: render-tridapad server
     autoDeploy: false
     envVars:
@@ -35,18 +32,21 @@ services:
           type: keyvalue
           name: tridapad-redis
           property: connectionString
+      - key: TRIDAPAD_AGENTSQL_SERVICE_ENABLED
+        value: "true"
+      - key: TRIDAPAD_AGENTSQL_SERVICE_URL
+        sync: false  # Set to your agentsql web service URL, e.g. https://agentsql-xxxx.onrender.com
+      - key: TRIDAPAD_CHAT_WIDGET_ENABLED
+        value: "true"
       - fromGroup: tridapad-shared
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
 
-  # Combined background worker for query execution, scheduled tasks, and periodic jobs
-  # This single worker handles all background processing to minimize costs
+  # Combined background worker and scheduler (kept combined for dev)
   - type: worker
     name: tridapad-worker-scheduler
     env: docker
-    plan: starter  # 512MB RAM, 0.5 CPU
-    # Upgrade to 'standard' for 2GB RAM, 1 CPU - better for heavy query workloads
-    # For high-traffic: Split into separate 'worker' and 'scheduler' services for better performance
+    plan: starter  # PLAN TO VERIFY; dev size
     dockerCommand: render-tridapad worker
     autoDeploy: false
     envVars:
@@ -67,6 +67,89 @@ services:
       - key: WORKERS_COUNT
         value: 1
 
+  # AgentSQL: natural-language questions to SQL and dashboards
+  # IMPORTANT: After creating this service, run `render-agentsql create_db`
+  # in Render Shell to initialize its schema.
+  - type: web
+    name: agentsql
+    env: image
+    plan: starter  # PLAN TO VERIFY; dev size
+    image:
+      url: docker.io/tridalabs/agentsql:1.0.5
+    autoDeploy: false
+    healthCheckPath: /livez
+    envVars:
+      - key: AGENTSQL_DATABASE_URL
+        fromDatabase:
+          name: tridapad-database
+          property: connectionString
+      - key: AGENTSQL_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: tridapad-redis
+          property: connectionString
+      - key: AGENTSQL_DB_TYPE
+        value: postgres
+      - key: AGENTSQL_LOG_LEVEL
+        value: INFO
+      - key: TRIDAPAD_BASE_URL
+        sync: false  # Set to your tridapad web service URL
+      - key: MCP_SERVER_URL
+        sync: false  # Set to your tridapad-mcp URL, ending in /mcp
+      - key: CORS_ORIGINS
+        sync: false  # JSON list, e.g. ["https://tridapad-xxxx.onrender.com"]
+      - key: ANTHROPIC_API_KEY
+        sync: false  # Your Anthropic API key
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: AGENTSQL_API_SECRET_KEY
+        generateValue: true
+
+  # TridaPad MCP server: lets AI tools query TridaPad over HTTP
+  - type: web
+    name: tridapad-mcp
+    runtime: image
+    image:
+      url: docker.io/tridalabs/tridapad-mcp:1.2.5
+    plan: starter  # PLAN TO VERIFY; dev size
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: TRANSPORT
+        value: http
+      - key: MCP_HOST
+        value: "0.0.0.0"
+      - key: MCP_PORT
+        value: "8080"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: TRIDAPAD_URL
+        sync: false  # Set to your tridapad web service URL
+      - key: TRIDAPAD_MAX_ROWS
+        value: "5000"
+      - key: TRIDAPAD_SQL_SAFETY
+        value: readonly
+      - key: TRIDAPAD_TIMEOUT
+        value: "30"
+      - key: TRIDAPAD_STRUCTURED_ERRORS
+        value: "true"
+      - key: TRIDAPAD_RESULT_METADATA
+        value: "true"
+      - key: TRIDAPAD_STRICT_QUERY_RESULTS
+        value: "true"
+      - key: TRIDAPAD_CANCEL_ON_TIMEOUT
+        value: "true"
+      - key: TRIDAPAD_SERVER_INFO
+        value: "true"
+      - key: TRIDAPAD_ATOMIC_BUILD
+        value: "true"
+      - key: TRIDAPAD_DASHBOARD_REFRESH
+        value: "true"
+      - key: TRIDAPAD_EXPLORE_TOOLS
+        value: "true"
+      - key: TRIDAPAD_LIBRARY_TOOLS
+        value: "true"
+
 envVarGroups:
   - name: tridapad-shared
     envVars:
@@ -84,13 +167,14 @@ envVarGroups:
         value: "true"
       - key: TRIDAPAD_RATELIMIT_ENABLED
         value: "true"
+      - key: TRIDAPAD_COOKIES_SECURE
+        value: "true"
 
   # Uncomment and fill the following fields if you wish to set up mailing in TridaPad.
   # It's recommended to use a mail service like Amazon SES, Mailgun, or SendGrid
   # to send emails and ensure deliverability.
   - name: tridapad-mail
     envVars:
-      # Basic mail server configuration
 #      - key: TRIDAPAD_MAIL_SERVER
 #        value: smtp.example.com
 #      - key: TRIDAPAD_MAIL_PORT
@@ -105,12 +189,6 @@ envVarGroups:
 #        value: your-smtp-password
 #      - key: TRIDAPAD_MAIL_DEFAULT_SENDER
 #        value: noreply@yourdomain.com
-      
-      # Optional: Advanced mail configuration
-#      - key: TRIDAPAD_MAIL_ASCII_ATTACHMENTS
-#        value: "false"
-#      - key: TRIDAPAD_MAIL_MAX_EMAILS
-#        value: "100"
 
   # Google OAuth Configuration (optional)
   # Uncomment and fill in to enable Google OAuth login
