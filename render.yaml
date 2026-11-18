@@ -3,14 +3,14 @@ databases:
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
-    plan: basic-256mb  # PLAN TO VERIFY; Starter-level for dev
+    plan: basic-256mb; Starter-level for dev
 
 services:
   # Shared managed Redis for TridaPad and AgentSQL
   - type: keyvalue
     name: tridapad-redis
     ipAllowList: []  # Only allow internal connections
-    plan: starter  # PLAN TO VERIFY; Starter keeps data (the free plan does not)
+    plan: starter
     maxmemoryPolicy: noeviction  # Don't evict data for job queues
 
   # Main TridaPad web service
@@ -19,7 +19,7 @@ services:
   - type: web
     name: tridapad
     env: docker
-    plan: starter  # PLAN TO VERIFY; dev size
+    plan: starter
     dockerCommand: render-tridapad server
     autoDeploy: false
     envVars:
@@ -46,7 +46,7 @@ services:
   - type: worker
     name: tridapad-worker-scheduler
     env: docker
-    plan: starter  # PLAN TO VERIFY; dev size
+    plan: starter
     dockerCommand: render-tridapad worker
     autoDeploy: false
     envVars:
@@ -73,7 +73,7 @@ services:
   - type: web
     name: agentsql
     env: image
-    plan: starter  # PLAN TO VERIFY; dev size
+    plan: starter
     image:
       url: docker.io/tridalabs/agentsql:1.0.5
     autoDeploy: false
@@ -111,7 +111,7 @@ services:
     runtime: image
     image:
       url: docker.io/tridalabs/tridapad-mcp:1.2.5
-    plan: starter  # PLAN TO VERIFY; dev size
+    plan: starter
     autoDeploy: false
     healthCheckPath: /health
     envVars:
