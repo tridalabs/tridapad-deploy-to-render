@@ -176,6 +176,7 @@ envVarGroups:
   # to send emails and ensure deliverability.
   - name: tridapad-mail
     envVars:
+      # Basic mail server configuration
 #      - key: TRIDAPAD_MAIL_SERVER
 #        value: smtp.example.com
 #      - key: TRIDAPAD_MAIL_PORT
@@ -190,6 +191,12 @@ envVarGroups:
 #        value: your-smtp-password
 #      - key: TRIDAPAD_MAIL_DEFAULT_SENDER
 #        value: noreply@yourdomain.com
+      
+      # Optional: Advanced mail configuration
+#      - key: TRIDAPAD_MAIL_ASCII_ATTACHMENTS
+#        value: "false"
+#      - key: TRIDAPAD_MAIL_MAX_EMAILS
+#        value: "100"
 
   # Google OAuth Configuration (optional)
   # Uncomment and fill in to enable Google OAuth login
