@@ -1,30 +1,18 @@
 databases:
-  # TridaPad database (larger plan than the old 256 MB)
+  # Shared PostgreSQL for TridaPad and AgentSQL (AgentSQL uses its own schema)
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
     plan: basic-1gb
-
-  # Separate database for AgentSQL
-  - name: tridapad-agentsql-database
-    databaseName: agentsql
-    user: agentsql
-    plan: basic-1gb
+    ipAllowList: []  # Only allow internal connections
 
 services:
-  # Managed Redis for TridaPad caching and job queues
+  # Shared managed Redis for TridaPad and AgentSQL
   - type: keyvalue
     name: tridapad-redis
     ipAllowList: []  # Only allow internal connections
     plan: standard
     maxmemoryPolicy: noeviction  # Don't evict data for job queues
-
-  # Separate managed Redis for AgentSQL
-  - type: keyvalue
-    name: tridapad-agentsql-redis
-    ipAllowList: []
-    plan: standard
-    maxmemoryPolicy: noeviction
 
   # Main TridaPad web service
   # IMPORTANT: After creating this service, run `render-tridapad create_db`
@@ -35,6 +23,7 @@ services:
     plan: pro
     dockerCommand: render-tridapad server
     autoDeploy: false
+    healthCheckPath: /ping
     envVars:
       - key: TRIDAPAD_DATABASE_URL
         fromDatabase:
@@ -77,12 +66,15 @@ services:
       - fromGroup: tridapad-oauth
       - key: QUEUES
         value: "queries,scheduled_queries,schemas,periodic,emails,default"
+      - key: TRIDAPAD_HOST
+        sync: false  # Your TridaPad address, e.g. https://tridapad-xxxx.onrender.com (used for links in alerts and emails)
 
-  # Scheduler for periodic tasks (separate service in production)
+  # Scheduler: puts scheduled queries, alerts and other periodic jobs on the
+  # queues at the right time. The worker above runs them.
   - type: worker
     name: tridapad-scheduler
     env: docker
-    plan: pro
+    plan: starter
     dockerCommand: render-tridapad scheduler
     autoDeploy: false
     envVars:
@@ -101,11 +93,11 @@ services:
 
   # AgentSQL: natural-language questions to SQL and dashboards
   # IMPORTANT: After creating this service, run `render-agentsql create_db`
-  # in Render Shell to initialize its database.
+  # in Render Shell to initialize its schema.
   - type: web
     name: agentsql
     env: image
-    plan: pro
+    plan: standard
     image:
       url: docker.io/tridalabs/agentsql:latest
     autoDeploy: false
@@ -113,15 +105,13 @@ services:
     envVars:
       - key: AGENTSQL_DATABASE_URL
         fromDatabase:
-          name: tridapad-agentsql-database
+          name: tridapad-database
           property: connectionString
       - key: AGENTSQL_REDIS_URL
         fromService:
           type: keyvalue
-          name: tridapad-agentsql-redis
+          name: tridapad-redis
           property: connectionString
-      - key: AGENTSQL_DB_TYPE
-        value: postgres
       - key: AGENTSQL_LOG_LEVEL
         value: INFO
       - key: TRIDAPAD_BASE_URL
@@ -143,7 +133,7 @@ services:
     runtime: image
     image:
       url: docker.io/tridalabs/tridapad-mcp:latest
-    plan: pro
+    plan: standard
     autoDeploy: false
     healthCheckPath: /health
     envVars:
@@ -191,8 +181,6 @@ envVarGroups:
         generateValue: true
       - key: TRIDAPAD_SECRET_KEY
         generateValue: true
-      - key: PYTHONUNBUFFERED
-        value: 0
       - key: TRIDAPAD_VERSION_CHECK
         value: "false"
       - key: TRIDAPAD_ENFORCE_CSRF
@@ -237,5 +225,3 @@ envVarGroups:
 #        value: your-google-client-id.apps.googleusercontent.com
 #      - key: TRIDAPAD_GOOGLE_CLIENT_SECRET
 #        value: your-google-client-secret
-#      - key: TRIDAPAD_GOOGLE_OAUTH_ENABLED
-#        value: "true"
