@@ -62,11 +62,13 @@ If you need help, visit https://tridalabs.com or contact support.
 The deployment will create:
 
 - **TridaPad Web Service** (Starter) - Main TridaPad application server (512MB RAM, 0.5 CPU)
-- **TridaPad Worker + Scheduler** (Starter) - Combined background worker for all async jobs and scheduling (512MB RAM, 0.5 CPU)
+- **TridaPad Worker** (Starter) - Background worker for queries, schema refreshes, emails and alerts (512MB RAM, 0.5 CPU)
 - **AgentSQL Web Service** (Starter) - Natural-language questions to SQL and dashboards (512MB RAM, 0.5 CPU)
 - **TridaPad MCP Server** (Starter) - Lets AI tools use TridaPad over HTTP (512MB RAM, 0.5 CPU)
 - **PostgreSQL Database** (Starter, shared by TridaPad and AgentSQL) - Managed database with automatic backups
 - **Key Value** (Starter, shared by TridaPad and AgentSQL) - Managed Redis for caching and job queues, with saved data (256MB)
+
+> **Note:** This low-cost setup has no scheduler service, so timed tasks don't run. That means **scheduled queries don't refresh on their schedule**, schemas don't refresh automatically, old query results aren't cleaned up, and failure-report emails aren't sent. Queries you run by hand, invitations, password resets and alerts still work. If you need scheduled queries, use the production-ready branch.
 
 ### Cost
 
@@ -75,7 +77,7 @@ About **$44/month** for the low-cost setup with all services:
 | Service | Plan | Specs | Cost |
 |---------|------|-------|------|
 | TridaPad Web | Starter | 512MB RAM, 0.5 CPU | $7/month |
-| TridaPad Worker + Scheduler | Starter | 512MB RAM, 0.5 CPU | $7/month |
+| TridaPad Worker | Starter | 512MB RAM, 0.5 CPU | $7/month |
 | AgentSQL Web | Starter | 512MB RAM, 0.5 CPU | $7/month |
 | MCP Server | Starter | 512MB RAM, 0.5 CPU | $7/month |
 | Key Value (shared) | Starter | 256MB, saved data | $10/month |
@@ -90,7 +92,7 @@ These are list prices and exclude storage charges and taxes. Check Render's pric
 Start with the minimal setup and upgrade components as needed:
 
 1. **First bottleneck (10-20 users)**: Upgrade the TridaPad Web Service to Standard ($25/mo) for better response times
-2. **Heavy queries**: Upgrade the Worker + Scheduler to Standard ($25/mo) for faster background processing
+2. **Heavy queries**: Upgrade the Worker to Standard ($25/mo) for faster background processing
 3. **Separate AgentSQL**: Give AgentSQL its own database and Redis once it's in heavier use
 4. **High traffic**: Use the production-ready branch, which splits the worker and scheduler
 

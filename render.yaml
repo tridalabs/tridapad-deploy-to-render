@@ -42,7 +42,8 @@ services:
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
 
-  # Combined background worker and scheduler (kept combined for dev)
+  # Background worker for all queues. Dev has no scheduler service, so timed
+  # tasks such as scheduled queries don't run (see README).
   - type: worker
     name: tridapad-worker-scheduler
     env: docker
@@ -63,7 +64,7 @@ services:
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
       - key: QUEUES
-        value: "queries,scheduled_queries,schemas,celery"  # All queues handled by one worker
+        value: "queries,scheduled_queries,schemas,periodic,emails,default"  # All queues handled by one worker
       - key: WORKERS_COUNT
         value: 1
 
