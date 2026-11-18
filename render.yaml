@@ -3,7 +3,7 @@ databases:
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
-    plan: basic-256mb; Starter-level for dev
+    plan: basic-256mb
 
 services:
   # Shared managed Redis for TridaPad and AgentSQL
