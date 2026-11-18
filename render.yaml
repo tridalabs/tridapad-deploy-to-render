@@ -2,6 +2,10 @@ databases:
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
+  # Separate PostgreSQL database for AgentSQL
+  - name: tridapad-agentsql-database
+    databaseName: agentsql
+    user: agentsql
 
 services:
   # Render managed Redis service for caching and job queues
@@ -85,6 +89,97 @@ services:
         value: "celery"
       - key: WORKERS_COUNT
         value: 1
+
+  # Managed Redis for AgentSQL
+  - type: keyvalue
+    name: tridapad-agentsql-redis
+    ipAllowList: []  # Only allow internal connections
+    plan: starter
+    maxmemoryPolicy: noeviction
+
+  # AgentSQL: natural-language questions to SQL and dashboards
+  # IMPORTANT: After creating this service, run `render-agentsql create_db`
+  # in Render Shell to initialize its database.
+  - type: web
+    name: agentsql
+    env: image
+    plan: standard  # 2GB RAM, 1 CPU
+    image:
+      url: docker.io/tridalabs/agentsql:1.0.5
+    autoDeploy: false
+    healthCheckPath: /livez
+    envVars:
+      - key: AGENTSQL_DATABASE_URL
+        fromDatabase:
+          name: tridapad-agentsql-database
+          property: connectionString
+      - key: AGENTSQL_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: tridapad-agentsql-redis
+          property: connectionString
+      - key: AGENTSQL_DB_TYPE
+        value: postgres
+      - key: AGENTSQL_LOG_LEVEL
+        value: INFO
+      - key: TRIDAPAD_BASE_URL
+        sync: false  # Set to the URL of your tridapad web service, e.g. https://tridapad-xxxx.onrender.com
+      - key: MCP_SERVER_URL
+        sync: false  # Set to your tridapad-mcp URL, e.g. https://tridapad-mcp-xxxx.onrender.com/mcp
+      - key: CORS_ORIGINS
+        sync: false  # JSON list of allowed browser origins, e.g. ["https://tridapad-xxxx.onrender.com"]
+      - key: ANTHROPIC_API_KEY
+        sync: false  # Your Anthropic API key
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: AGENTSQL_API_SECRET_KEY
+        generateValue: true
+
+  # TridaPad MCP server: lets AI tools query TridaPad over HTTP
+  - type: web
+    name: tridapad-mcp
+    runtime: image
+    image:
+      url: docker.io/tridalabs/tridapad-mcp:1.2.5
+    plan: standard  # 2GB RAM, 1 CPU
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: TRANSPORT
+        value: http
+      - key: MCP_HOST
+        value: "0.0.0.0"
+      - key: MCP_PORT
+        value: "8080"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: TRIDAPAD_URL
+        sync: false  # Set to the URL of your tridapad web service, e.g. https://tridapad-xxxx.onrender.com
+      # Every request carries its caller's own API key; no shared key is set here.
+      - key: TRIDAPAD_MAX_ROWS
+        value: "5000"
+      - key: TRIDAPAD_SQL_SAFETY
+        value: readonly
+      - key: TRIDAPAD_TIMEOUT
+        value: "30"
+      - key: TRIDAPAD_STRUCTURED_ERRORS
+        value: "true"
+      - key: TRIDAPAD_RESULT_METADATA
+        value: "true"
+      - key: TRIDAPAD_STRICT_QUERY_RESULTS
+        value: "true"
+      - key: TRIDAPAD_CANCEL_ON_TIMEOUT
+        value: "true"
+      - key: TRIDAPAD_SERVER_INFO
+        value: "true"
+      - key: TRIDAPAD_ATOMIC_BUILD
+        value: "true"
+      - key: TRIDAPAD_DASHBOARD_REFRESH
+        value: "true"
+      - key: TRIDAPAD_EXPLORE_TOOLS
+        value: "true"
+      - key: TRIDAPAD_LIBRARY_TOOLS
+        value: "true"
 
 envVarGroups:
   - name: tridapad-shared

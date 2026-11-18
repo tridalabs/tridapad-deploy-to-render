@@ -4,20 +4,21 @@ This repository can be used to deploy [TridaPad](https://tridalabs.com) on Rende
 
 - It uses the [official TridaPad Docker image](https://hub.docker.com/r/tridalabs/tridapad) with an entrypoint script that customizes TridaPad for Render.
 - It creates a Web Service on **Standard** plan for TridaPad and two [Background Workers](https://render.com/docs/background-workers) for job processing.
-- [Render Databases](https://render.com/docs/databases) are used to spin up a fully managed PostgreSQL instance.
-- It uses [Render Key Value](https://render.com/docs/key-value) (managed Redis) for caching and asynchronous job queues.
+- It also deploys **AgentSQL** (natural-language questions to SQL and dashboards) and the **TridaPad MCP server** (lets AI tools use TridaPad) as separate Web Services, each using a pinned Docker image.
+- [Render Databases](https://render.com/docs/databases) are used to spin up fully managed PostgreSQL instances, one for TridaPad and one for AgentSQL.
+- It uses [Render Key Value](https://render.com/docs/key-value) (managed Redis) for caching and asynchronous job queues, one for TridaPad and one for AgentSQL.
 - It provides template [environment groups](https://render.com/docs/yaml-spec#environment-groups) for optionally setting up mailing and OAuth in TridaPad.
 
 ## Choose Your Deployment Option
 
 ### 🚀 Production-Ready (This Branch: `production-ready`)
-**Starting at $82-95/month** - Recommended for:
+**Starting at $153-179/month** - Recommended for:
 - Production workloads
 - Medium to large teams (10+ users)
 - Higher traffic applications
 - Businesses requiring better performance from day one
 
-Uses Standard plans with separate worker and scheduler services.
+Uses Standard plans with separate worker and scheduler services, plus AgentSQL and the MCP server.
 
 ### 🎯 Low-Cost Starter (`low-cost-starter` branch)
 **Starting at $14-21/month** - Perfect for:
@@ -44,6 +45,12 @@ Then, in Render Shell of the `tridapad` web service execute the following statem
 $ render-tridapad create_db
 ```
 
+Then, in Render Shell of the `agentsql` web service execute:
+
+```shell
+$ render-agentsql create_db
+```
+
 ### Manual
 
 See the complete deployment guide at https://docs.tridalabs.com/self-hosted/deploy-to-render/
@@ -57,19 +64,23 @@ The deployment will create:
 - **Web Service** (Standard) - Main TridaPad application server (2GB RAM, 1 CPU)
 - **Worker** (Standard) - Background worker for query execution (2GB RAM, 1 CPU)
 - **Scheduler** (Standard) - Handles scheduled queries and periodic tasks (2GB RAM, 1 CPU)
-- **PostgreSQL Database** - Managed database with automatic backups
-- **Key Value** (Starter) - Managed Redis for caching and job queues with persistence (1GB storage)
+- **AgentSQL** (Standard) - Natural-language questions to SQL and dashboards (2GB RAM, 1 CPU)
+- **TridaPad MCP server** (Standard) - Lets AI tools use TridaPad over HTTP (2GB RAM, 1 CPU)
+- **PostgreSQL Databases** (two) - Managed databases with automatic backups, one for TridaPad and one for AgentSQL
+- **Key Value** (two, Starter) - Managed Redis for caching and job queues with persistence (1GB storage each)
 
 ### Cost
 
-Starting at **~$82/month** for a production-ready setup:
+Starting at **~$153-179/month** for a production-ready setup with all services:
 - Web Service (Standard): $25/month
 - Worker (Standard): $25/month
 - Scheduler (Standard): $25/month
-- PostgreSQL (Default): $7-20/month (varies)*
-- Key Value (Starter): $7/month
+- AgentSQL (Standard): $25/month
+- MCP server (Standard): $25/month
+- PostgreSQL x2 (Default): $14-40/month total (varies)*
+- Key Value x2 (Starter): $14/month total
 
-*Database plan will be selected during deployment based on Render's current offerings.
+*Database plan will be selected during deployment based on Render's current offerings. Prices are estimates; check Render's pricing page before deploying.
 
 > **Note:** All compute services use Standard tier for consistent performance. You can upgrade individual services as needed.
 
@@ -84,6 +95,17 @@ After deployment, you **must** initialize the database:
 3. Run: `render-tridapad create_db`
 4. Wait for initialization to complete (~1-2 minutes)
 5. **Important:** Wait an additional 5 minutes for the service to fully restart and apply changes before accessing the web UI
+
+### Required Setup for AgentSQL and the MCP Server
+
+These services need their URLs and API keys filled in after deployment. Set them in the Render dashboard under each service's **Environment** tab:
+
+1. `agentsql`: run `render-agentsql create_db` in its Shell tab.
+2. `agentsql`: set `TRIDAPAD_BASE_URL` to your `tridapad` web service URL.
+3. `agentsql`: set `MCP_SERVER_URL` to your `tridapad-mcp` URL, ending in `/mcp`.
+4. `agentsql`: set `CORS_ORIGINS` to a JSON list containing your TridaPad URL, e.g. `["https://your-tridapad.onrender.com"]`.
+5. `agentsql`: set `ANTHROPIC_API_KEY` to your Anthropic API key.
+6. `tridapad-mcp`: set `TRIDAPAD_URL` to your `tridapad` web service URL.
 
 ### Optional: Email Configuration
 
