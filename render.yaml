@@ -107,7 +107,7 @@ services:
     env: image
     plan: pro
     image:
-      url: docker.io/tridalabs/agentsql:1.0.5
+      url: docker.io/tridalabs/agentsql:latest
     autoDeploy: false
     healthCheckPath: /livez
     envVars:
@@ -142,7 +142,7 @@ services:
     name: tridapad-mcp
     runtime: image
     image:
-      url: docker.io/tridalabs/tridapad-mcp:1.2.5
+      url: docker.io/tridalabs/tridapad-mcp:latest
     plan: pro
     autoDeploy: false
     healthCheckPath: /health
