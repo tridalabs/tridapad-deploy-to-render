@@ -3,13 +3,13 @@ databases:
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
-    plan: basic-1gb on Render before merge
+    plan: basic-1gb
 
   # Separate database for AgentSQL
   - name: tridapad-agentsql-database
     databaseName: agentsql
     user: agentsql
-    plan: basic-1gb on Render before merge
+    plan: basic-1gb
 
 services:
   # Managed Redis for TridaPad caching and job queues
