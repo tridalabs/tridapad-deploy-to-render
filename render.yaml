@@ -3,27 +3,27 @@ databases:
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
-    plan: basic-1gb  # PLAN TO VERIFY on Render before merge
+    plan: basic-1gb on Render before merge
 
   # Separate database for AgentSQL
   - name: tridapad-agentsql-database
     databaseName: agentsql
     user: agentsql
-    plan: basic-1gb  # PLAN TO VERIFY on Render before merge
+    plan: basic-1gb on Render before merge
 
 services:
   # Managed Redis for TridaPad caching and job queues
   - type: keyvalue
     name: tridapad-redis
     ipAllowList: []  # Only allow internal connections
-    plan: standard  # PLAN TO VERIFY; larger than the old 256 MB Starter
+    plan: standard
     maxmemoryPolicy: noeviction  # Don't evict data for job queues
 
   # Separate managed Redis for AgentSQL
   - type: keyvalue
     name: tridapad-agentsql-redis
     ipAllowList: []
-    plan: standard  # PLAN TO VERIFY
+    plan: standard
     maxmemoryPolicy: noeviction
 
   # Main TridaPad web service
@@ -32,7 +32,7 @@ services:
   - type: web
     name: tridapad
     env: docker
-    plan: pro  # PLAN TO VERIFY; production size
+    plan: pro
     dockerCommand: render-tridapad server
     autoDeploy: false
     envVars:
@@ -59,7 +59,7 @@ services:
   - type: worker
     name: tridapad-worker
     env: docker
-    plan: pro  # PLAN TO VERIFY; production size
+    plan: pro
     dockerCommand: render-tridapad worker
     autoDeploy: false
     envVars:
@@ -82,7 +82,7 @@ services:
   - type: worker
     name: tridapad-scheduler
     env: docker
-    plan: pro  # PLAN TO VERIFY; production size
+    plan: pro
     dockerCommand: render-tridapad scheduler
     autoDeploy: false
     envVars:
@@ -109,7 +109,7 @@ services:
   - type: web
     name: agentsql
     env: image
-    plan: pro  # PLAN TO VERIFY; production size
+    plan: pro
     image:
       url: docker.io/tridalabs/agentsql:1.0.5
     autoDeploy: false
@@ -147,7 +147,7 @@ services:
     runtime: image
     image:
       url: docker.io/tridalabs/tridapad-mcp:1.2.5
-    plan: pro  # PLAN TO VERIFY; production size
+    plan: pro
     autoDeploy: false
     healthCheckPath: /health
     envVars:
