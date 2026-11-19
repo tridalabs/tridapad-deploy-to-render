@@ -1,30 +1,29 @@
 databases:
-  # PostgreSQL database - Starter plan recommended for persistence
+  # Shared PostgreSQL for TridaPad and AgentSQL (AgentSQL uses its own schema)
   - name: tridapad-database
     databaseName: tridapad
     user: tridapad
-    # Upgrade to 'standard' for 10GB storage and 4GB RAM when data grows
+    plan: basic-256mb
+    ipAllowList: []  # Only allow internal connections
 
 services:
-  # Render managed Redis service for caching and job queues
+  # Shared managed Redis for TridaPad and AgentSQL
   - type: keyvalue
     name: tridapad-redis
     ipAllowList: []  # Only allow internal connections
-    plan: free  # Limited to 100MB, no persistence
-    # Upgrade to 'starter' for data persistence and 1GB storage
-    # Upgrade to 'standard' for 5GB storage and better performance
+    plan: starter
     maxmemoryPolicy: noeviction  # Don't evict data for job queues
 
   # Main TridaPad web service
-  # IMPORTANT: After creating this service, run `render-tridapad create_db` 
+  # IMPORTANT: After creating this service, run `render-tridapad create_db`
   # in Render Shell to initialize the database.
   - type: web
     name: tridapad
     env: docker
-    plan: standard  # 2GB RAM, 1 CPU
-    # Upgrade to 'pro' for 4GB RAM, 2 CPU - production workloads with heavy traffic
+    plan: starter
     dockerCommand: render-tridapad server
     autoDeploy: false
+    healthCheckPath: /ping
     envVars:
       - key: TRIDAPAD_DATABASE_URL
         fromDatabase:
@@ -35,18 +34,23 @@ services:
           type: keyvalue
           name: tridapad-redis
           property: connectionString
+      - key: TRIDAPAD_AGENTSQL_SERVICE_ENABLED
+        value: "true"
+      - key: TRIDAPAD_AGENTSQL_SERVICE_URL
+        sync: false  # Set to your agentsql web service URL, e.g. https://agentsql-xxxx.onrender.com
+      - key: TRIDAPAD_CHAT_WIDGET_ENABLED
+        value: "true"
+      - key: TRIDAPAD_WEB_WORKERS
+        value: "2"  # Web processes; the default of 4 is too many for 512 MB
       - fromGroup: tridapad-shared
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
 
-  # Combined background worker for query execution, scheduled tasks, and periodic jobs
-  # This single worker handles all background processing to minimize costs
+  # Background worker for all queues: runs queries, alerts and emails
   - type: worker
     name: tridapad-worker-scheduler
     env: docker
-    plan: starter  # 512MB RAM, 0.5 CPU
-    # Upgrade to 'standard' for 2GB RAM, 1 CPU - better for heavy query workloads
-    # For high-traffic: Split into separate 'worker' and 'scheduler' services for better performance
+    plan: starter
     dockerCommand: render-tridapad worker
     autoDeploy: false
     envVars:
@@ -63,9 +67,114 @@ services:
       - fromGroup: tridapad-mail
       - fromGroup: tridapad-oauth
       - key: QUEUES
-        value: "queries,scheduled_queries,schemas,celery"  # All queues handled by one worker
+        value: "queries,scheduled_queries,schemas,periodic,emails,default"  # All queues handled by one worker
       - key: WORKERS_COUNT
         value: 1
+      - key: TRIDAPAD_HOST
+        sync: false  # Your TridaPad address, e.g. https://tridapad-xxxx.onrender.com (used for links in alerts and emails)
+
+  # Scheduler: puts scheduled queries, alerts and other periodic jobs on the
+  # queues at the right time. The worker above runs them.
+  - type: worker
+    name: tridapad-scheduler
+    env: docker
+    plan: starter
+    dockerCommand: render-tridapad scheduler
+    autoDeploy: false
+    envVars:
+      - key: TRIDAPAD_DATABASE_URL
+        fromDatabase:
+          name: tridapad-database
+          property: connectionString
+      - key: TRIDAPAD_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: tridapad-redis
+          property: connectionString
+      - fromGroup: tridapad-shared
+      - fromGroup: tridapad-mail
+      - fromGroup: tridapad-oauth
+
+  # AgentSQL: natural-language questions to SQL and dashboards
+  # IMPORTANT: After creating this service, run `render-agentsql create_db`
+  # in Render Shell to initialize its schema.
+  - type: web
+    name: agentsql
+    env: image
+    plan: starter
+    image:
+      url: docker.io/tridalabs/agentsql:latest
+    autoDeploy: false
+    healthCheckPath: /livez
+    envVars:
+      - key: AGENTSQL_DATABASE_URL
+        fromDatabase:
+          name: tridapad-database
+          property: connectionString
+      - key: AGENTSQL_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: tridapad-redis
+          property: connectionString
+      - key: AGENTSQL_LOG_LEVEL
+        value: INFO
+      - key: TRIDAPAD_BASE_URL
+        sync: false  # Set to your tridapad web service URL
+      - key: MCP_SERVER_URL
+        sync: false  # Set to your tridapad-mcp URL, ending in /mcp
+      - key: CORS_ORIGINS
+        sync: false  # JSON list, e.g. ["https://tridapad-xxxx.onrender.com"]
+      - key: ANTHROPIC_API_KEY
+        sync: false  # Your Anthropic API key
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: AGENTSQL_API_SECRET_KEY
+        generateValue: true
+
+  # TridaPad MCP server: lets AI tools query TridaPad over HTTP
+  - type: web
+    name: tridapad-mcp
+    runtime: image
+    image:
+      url: docker.io/tridalabs/tridapad-mcp:latest
+    plan: starter
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: TRANSPORT
+        value: http
+      - key: MCP_HOST
+        value: "0.0.0.0"
+      - key: MCP_PORT
+        value: "8080"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: TRIDAPAD_URL
+        sync: false  # Set to your tridapad web service URL
+      - key: TRIDAPAD_MAX_ROWS
+        value: "5000"
+      - key: TRIDAPAD_SQL_SAFETY
+        value: readonly
+      - key: TRIDAPAD_TIMEOUT
+        value: "30"
+      - key: TRIDAPAD_STRUCTURED_ERRORS
+        value: "true"
+      - key: TRIDAPAD_RESULT_METADATA
+        value: "true"
+      - key: TRIDAPAD_STRICT_QUERY_RESULTS
+        value: "true"
+      - key: TRIDAPAD_CANCEL_ON_TIMEOUT
+        value: "true"
+      - key: TRIDAPAD_SERVER_INFO
+        value: "true"
+      - key: TRIDAPAD_ATOMIC_BUILD
+        value: "true"
+      - key: TRIDAPAD_DASHBOARD_REFRESH
+        value: "true"
+      - key: TRIDAPAD_EXPLORE_TOOLS
+        value: "true"
+      - key: TRIDAPAD_LIBRARY_TOOLS
+        value: "true"
 
 envVarGroups:
   - name: tridapad-shared
@@ -76,13 +185,13 @@ envVarGroups:
         generateValue: true
       - key: TRIDAPAD_SECRET_KEY
         generateValue: true
-      - key: PYTHONUNBUFFERED
-        value: 0
       - key: TRIDAPAD_VERSION_CHECK
         value: "false"
       - key: TRIDAPAD_ENFORCE_CSRF
         value: "true"
       - key: TRIDAPAD_RATELIMIT_ENABLED
+        value: "true"
+      - key: TRIDAPAD_COOKIES_SECURE
         value: "true"
 
   # Uncomment and fill the following fields if you wish to set up mailing in TridaPad.
@@ -120,5 +229,3 @@ envVarGroups:
 #        value: your-google-client-id.apps.googleusercontent.com
 #      - key: TRIDAPAD_GOOGLE_CLIENT_SECRET
 #        value: your-google-client-secret
-#      - key: TRIDAPAD_GOOGLE_OAUTH_ENABLED
-#        value: "true"
