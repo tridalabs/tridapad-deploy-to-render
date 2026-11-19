@@ -3,8 +3,11 @@ set -e
 
 export PYTHONUNBUFFERED=1
 
-# Set TridaPad host from Render's environment variable
-export TRIDAPAD_HOST="$RENDER_EXTERNAL_HOSTNAME"
+# Keep TRIDAPAD_HOST if it is set. Otherwise use the service's own Render
+# address, which Render provides only on web services.
+if [ -z "$TRIDAPAD_HOST" ] && [ -n "$RENDER_EXTERNAL_HOSTNAME" ]; then
+  export TRIDAPAD_HOST="https://$RENDER_EXTERNAL_HOSTNAME"
+fi
 
 # Execute the main docker-entrypoint script with passed arguments
 exec /app/bin/docker-entrypoint "$@"
