@@ -19,7 +19,7 @@ services:
   # in Render Shell to initialize the database.
   - type: web
     name: tridapad
-    env: docker
+    runtime: docker
     plan: pro
     dockerCommand: render-tridapad server
     autoDeploy: false
@@ -47,7 +47,7 @@ services:
   # Background worker for query execution
   - type: worker
     name: tridapad-worker
-    env: docker
+    runtime: docker
     plan: pro
     dockerCommand: render-tridapad worker
     autoDeploy: false
@@ -73,7 +73,7 @@ services:
   # queues at the right time. The worker above runs them.
   - type: worker
     name: tridapad-scheduler
-    env: docker
+    runtime: docker
     plan: starter
     dockerCommand: render-tridapad scheduler
     autoDeploy: false
@@ -96,7 +96,7 @@ services:
   # in Render Shell to initialize its schema.
   - type: web
     name: agentsql
-    env: image
+    runtime: image
     plan: standard
     image:
       url: docker.io/tridalabs/agentsql:latest
@@ -194,7 +194,7 @@ envVarGroups:
   # It's recommended to use a mail service like Amazon SES, Mailgun, or SendGrid
   # to send emails and ensure deliverability.
   - name: tridapad-mail
-    envVars:
+    envVars: []
       # Basic mail server configuration
 #      - key: TRIDAPAD_MAIL_SERVER
 #        value: smtp.example.com
@@ -220,7 +220,7 @@ envVarGroups:
   # Google OAuth Configuration (optional)
   # Uncomment and fill in to enable Google OAuth login
   - name: tridapad-oauth
-    envVars:
+    envVars: []
 #      - key: TRIDAPAD_GOOGLE_CLIENT_ID
 #        value: your-google-client-id.apps.googleusercontent.com
 #      - key: TRIDAPAD_GOOGLE_CLIENT_SECRET
