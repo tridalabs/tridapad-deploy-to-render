@@ -1,256 +1,237 @@
 # Deploy TridaPad on Render
 
-Thank you for choosing TridaPad. This repository helps you deploy [TridaPad](https://tridalabs.com) on [Render](https://render.com) in a few steps.
+This repository can be used to deploy [TridaPad](https://tridalabs.com) on Render.
 
-Along with TridaPad, it also deploys:
-- **AgentSQL**, which lets you ask questions in plain language and get SQL and dashboards.
-- **TridaPad MCP server**, which lets AI tools work with TridaPad.
+- It uses the [official TridaPad Docker image](https://hub.docker.com/r/tridalabs/tridapad) with an entrypoint script that customizes TridaPad for Render.
+- It creates a Web Service on **Standard** plan for TridaPad and two [Background Workers](https://render.com/docs/background-workers) for job processing.
+- [Render Databases](https://render.com/docs/databases) are used to spin up a fully managed PostgreSQL instance.
+- It uses [Render Key Value](https://render.com/docs/key-value) (managed Redis) for caching and asynchronous job queues.
+- It provides template [environment groups](https://render.com/docs/yaml-spec#environment-groups) for optionally setting up mailing and OAuth in TridaPad.
 
-## Deployment Options
+## Choose Your Deployment Option
 
-| Option | Best for | Approximate cost |
-|---|---|---|
-| **Production-ready** (this branch: `production-ready`) | Teams in production, 10+ users | $266 / month |
-| **Low-cost starter** ([`low-cost-starter` branch](https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-starter)) | Small teams, testing and evaluation | $44 / month |
+### 🚀 Production-Ready (This Branch: `production-ready`)
+**Starting at $82-95/month** - Recommended for:
+- Production workloads
+- Medium to large teams (10+ users)
+- Higher traffic applications
+- Businesses requiring better performance from day one
 
-Please note that the low-cost starter has no scheduler, so scheduled queries do not run there.
+Uses Standard plans with separate worker and scheduler services.
 
-## What Gets Deployed
+### 🎯 Low-Cost Starter (`low-cost-starter` branch)
+**Starting at $14-21/month** - Perfect for:
+- Small teams (1-10 users)
+- Testing and development
+- Low-traffic deployments
+- Budget-conscious startups
 
-| Name | Plan | Size | Purpose |
-|---|---|---|---|
-| `tridapad` | Pro | 2 CPU, 4 GB | The TridaPad web application |
-| `tridapad-worker` | Pro | 2 CPU, 4 GB | Runs queries, alerts and emails |
-| `tridapad-scheduler` | Starter | 0.5 CPU, 512 MB | Starts scheduled queries and other timed jobs |
-| `agentsql` | Standard | 1 CPU, 2 GB | AgentSQL |
-| `tridapad-mcp` | Standard | 1 CPU, 2 GB | TridaPad MCP server |
-| `tridapad-database` | Postgres `basic-1gb` | 0.5 CPU, 1 GB | Database for TridaPad and AgentSQL |
-| `tridapad-redis` | Key Value Standard | 1 GB | Job queues and cache |
+[Switch to low-cost-starter branch](https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-starter) for the budget-friendly configuration with easy upgrade paths.
 
-TridaPad and AgentSQL share one database and one Key Value instance. AgentSQL keeps its tables in a separate `agentsql` schema. Both the database and Key Value accept connections only from your other Render services.
+## Deployment
 
-### Cost
+### One Click
 
-| Item | Monthly |
-|---|---|
-| TridaPad web and worker (Pro, 2 × $85) | $170 |
-| TridaPad scheduler (Starter) | $7 |
-| AgentSQL and MCP server (Standard, 2 × $25) | $50 |
-| Key Value (Standard) | $20 |
-| Postgres (`basic-1gb`) | $19 |
-| **Total** | **about $266** |
-
-These are list prices, excluding database storage and taxes. Prices may change, so please check [Render's pricing page](https://render.com/pricing) before you deploy.
-
-## Deploy
-
-Click the button below to deploy the production-ready configuration:
+Use the button below to deploy TridaPad on Render with the **production-ready configuration**.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/production-ready)
 
-To keep costs low, you can use the [low-cost starter](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-starter) instead.
+> **Want to minimize costs?** Use the [low-cost-starter deployment](https://render.com/deploy?repo=https://github.com/tridalabs/tridapad-deploy-to-render/tree/low-cost-starter) ($14-21/month)
 
-During setup, Render may ask for a few values. You can leave them empty for now and fill them in afterwards, as described below.
+Then, in Render Shell of the `tridapad` web service execute the following statement:
 
-For a detailed guide, please see our [Render deployment documentation](https://docs.tridalabs.com/self-hosted/deploy-to-render/).
+```shell
+$ render-tridapad create_db
+```
 
-## After Deploying
+### Manual
 
-Auto-deploy is turned off for every service. After you change a value, please open that service and select **Manual Deploy → Deploy latest commit**.
+See the complete deployment guide at https://docs.tridalabs.com/self-hosted/deploy-to-render/
 
-### Step 1: Copy your service addresses
+If you need help, visit https://tridalabs.com or contact support.
 
-In the Render dashboard, open `tridapad`, `agentsql` and `tridapad-mcp` one at a time, and copy the link shown under each service name. It looks like `https://tridapad-xxxx.onrender.com`, or your own domain if you have added one.
+## What Gets Deployed
 
-Please keep in mind:
-- Copy the link under the service name, not the address in your browser's address bar.
-- Do not add a `/` at the end of an address.
+The deployment will create:
 
-### Step 2: Fill in the settings
+- **Web Service** (Standard) - Main TridaPad application server (2GB RAM, 1 CPU)
+- **Worker** (Standard) - Background worker for query execution (2GB RAM, 1 CPU)
+- **Scheduler** (Standard) - Handles scheduled queries and periodic tasks (2GB RAM, 1 CPU)
+- **PostgreSQL Database** - Managed database with automatic backups
+- **Key Value** (Starter) - Managed Redis for caching and job queues with persistence (1GB storage)
 
-Open each service, go to **Environment**, enter the values below, and save.
+### Cost
 
-| Service | Setting | Value | Example |
-|---|---|---|---|
-| `tridapad` | `TRIDAPAD_AGENTSQL_SERVICE_URL` | Your AgentSQL address | `https://agentsql-xxxx.onrender.com` |
-| `tridapad-worker` | `TRIDAPAD_HOST` | Your TridaPad address | `https://tridapad-xxxx.onrender.com` |
-| `agentsql` | `MCP_SERVER_URL` | Your MCP server address, followed by `/mcp` | `https://tridapad-mcp-xxxx.onrender.com/mcp` |
-| `agentsql` | `CORS_ORIGINS` | Your TridaPad address, inside `["..."]` | `["https://tridapad-xxxx.onrender.com"]` |
-| `agentsql` | `ANTHROPIC_API_KEY` | Your Anthropic API key | `sk-ant-...` |
-| `tridapad-mcp` | `TRIDAPAD_URL` | Your TridaPad address | `https://tridapad-xxxx.onrender.com` |
+Starting at **~$82/month** for a production-ready setup:
+- Web Service (Standard): $25/month
+- Worker (Standard): $25/month
+- Scheduler (Standard): $25/month
+- PostgreSQL (Default): $7-20/month (varies)*
+- Key Value (Starter): $7/month
 
-A few helpful notes:
-- `CORS_ORIGINS` must use the `["..."]` format. Otherwise, AgentSQL will not start.
-- `TRIDAPAD_HOST` is used for links in alerts and emails.
-- Please make sure to fill in `TRIDAPAD_AGENTSQL_SERVICE_URL`. If it is empty, TridaPad uses the AgentSQL service hosted by Tridalabs instead of yours.
-- `TRIDAPAD_BASE_URL` on `agentsql` is not required. You may leave it empty.
-- The MCP server uses each person's own TridaPad API key, so no shared key is needed.
+*Database plan will be selected during deployment based on Render's current offerings.
 
-When you are done, please redeploy `tridapad`, `tridapad-worker`, `agentsql` and `tridapad-mcp`.
+> **Note:** All compute services use Standard tier for consistent performance. You can upgrade individual services as needed.
 
-### Step 3: Set up the databases (first deployment only)
+## Configuration
 
-1. Open the `tridapad` service, go to **Shell**, and run:
-   ```shell
-   render-tridapad create_db
-   ```
-2. Open the `agentsql` service, go to **Shell**, and run:
-   ```shell
-   render-agentsql create_db
-   ```
-3. Please allow about 5 minutes for the services to restart.
+### Required Setup
 
-If you are moving an existing installation, please skip this step and follow [Moving from an Existing Installation](#moving-from-an-existing-installation).
+After deployment, you **must** initialize the database:
 
-### Step 4: Confirm everything works
+1. Go to your `tridapad` web service in Render dashboard
+2. Open the **Shell** tab
+3. Run: `render-tridapad create_db`
+4. Wait for initialization to complete (~1-2 minutes)
+5. **Important:** Wait an additional 5 minutes for the service to fully restart and apply changes before accessing the web UI
 
-| Open in your browser | You should see |
-|---|---|
-| Your TridaPad address | The TridaPad setup or login page |
-| Your TridaPad address + `/ping` | `PONG.` |
-| Your AgentSQL address + `/livez` | A response from AgentSQL |
-| Your MCP server address + `/health` | A response from the MCP server |
+### Optional: Email Configuration
 
-## Optional Settings
+To enable email functionality (user invites, alerts, password resets):
 
-### Email
+1. In Render dashboard, go to Environment tab
+2. Edit the `tridapad-mail` environment group
+3. Uncomment and fill in your SMTP credentials:
+   - `TRIDAPAD_MAIL_SERVER`: Your SMTP server (e.g., smtp.sendgrid.net)
+   - `TRIDAPAD_MAIL_PORT`: SMTP port (typically 587)
+   - `TRIDAPAD_MAIL_USERNAME`: SMTP username
+   - `TRIDAPAD_MAIL_PASSWORD`: SMTP password
+   - `TRIDAPAD_MAIL_DEFAULT_SENDER`: From email address
 
-Email is used for user invitations, password resets and alert notifications.
+**Recommended providers:**
+- [SendGrid](https://sendgrid.com/) - 100 free emails/day
+- [Amazon SES](https://aws.amazon.com/ses/) - Cost-effective for high volume
+- [Mailgun](https://www.mailgun.com/) - Developer-friendly
 
-1. In the Render dashboard, open **Environment Groups** and select `tridapad-mail`.
-2. Add the following settings:
+### Optional: Google OAuth
 
-   | Setting | Value |
-   |---|---|
-   | `TRIDAPAD_MAIL_SERVER` | Your SMTP server, for example `smtp.sendgrid.net` |
-   | `TRIDAPAD_MAIL_PORT` | Usually `587` |
-   | `TRIDAPAD_MAIL_USE_TLS` | `true` when using port 587 |
-   | `TRIDAPAD_MAIL_USERNAME` | Your SMTP username |
-   | `TRIDAPAD_MAIL_PASSWORD` | Your SMTP password |
-   | `TRIDAPAD_MAIL_DEFAULT_SENDER` | The "From" email address |
+To enable Google OAuth login:
 
-3. Redeploy `tridapad`, `tridapad-worker` and `tridapad-scheduler`.
-
-Popular email providers include [SendGrid](https://sendgrid.com/), [Amazon SES](https://aws.amazon.com/ses/) and [Mailgun](https://www.mailgun.com/).
-
-### Google Login
-
-1. Create OAuth credentials in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
-2. Add this redirect URI, using your TridaPad address:
-   `https://tridapad-xxxx.onrender.com/oauth/google_oauth2_callback`
-3. In the Render dashboard, open **Environment Groups**, select `tridapad-oauth`, and add:
-   - `TRIDAPAD_GOOGLE_CLIENT_ID`: your Google client ID
-   - `TRIDAPAD_GOOGLE_CLIENT_SECRET`: your Google client secret
-4. Redeploy `tridapad`.
-
-Google login is enabled automatically once both settings are added.
-
-### Custom Domain
-
-1. Open the `tridapad` service and go to **Settings → Custom Domains**.
-2. Add your domain, for example `pad.yourdomain.com`.
-3. Update your DNS as Render instructs. Render provides the SSL certificate automatically.
-4. Update the settings that contain your TridaPad address (`TRIDAPAD_HOST`, `CORS_ORIGINS` and `TRIDAPAD_URL`), then redeploy those services.
-5. If you use Google login, please add the new redirect URI in the Google Cloud Console.
+1. Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Add authorized redirect URI: `https://your-service.onrender.com/oauth/google_callback`
+3. In Render dashboard, edit `tridapad-oauth` environment group
+4. Uncomment and fill in:
+   - `TRIDAPAD_GOOGLE_CLIENT_ID`: Your Google client ID
+   - `TRIDAPAD_GOOGLE_CLIENT_SECRET`: Your Google client secret
+   - `TRIDAPAD_GOOGLE_OAUTH_ENABLED`: Set to `true`
 
 ## Scaling
 
-As your team grows, you can change any service's plan in the Render dashboard.
+### Vertical Scaling
+Upgrade individual services to larger instance types in Render dashboard:
+- Standard Plus (1GB RAM): $15/month
+- Pro (2GB RAM): $25/month
+- Pro Plus (4GB RAM): $65/month
 
-| Plan | CPU | Memory |
-|---|---|---|
-| Starter | 0.5 | 512 MB |
-| Standard | 1 | 2 GB |
-| Pro | 2 | 4 GB |
-| Pro Plus | 4 | 8 GB |
+### Horizontal Scaling
+Increase the number of worker instances to handle more concurrent queries:
+1. Go to your worker service
+2. Adjust instance count
+3. Costs scale linearly
 
-Some helpful tips:
-- The database is usually the first component that needs more capacity.
-- To run more queries at once, add instances to `tridapad-worker`, or set `WORKERS_COUNT` on it (default: 2).
-- Please note that a Key Value instance can be upgraded but cannot be downgraded later.
+## Custom Domain
 
-## Moving from an Existing Installation
+1. Go to your web service settings
+2. Navigate to **Custom Domains**
+3. Add your domain (e.g., `pad.yourdomain.com`)
+4. Configure DNS as instructed
+5. Render automatically provisions SSL certificates
 
-### Step 1: Save your secret keys
+## Migrating from Self-Hosted
 
-Before you deploy, please copy these two values from the `.env` file on your current server:
+If you're migrating from an existing TridaPad installation and would like to get all the database connections details:
 
+### Step 1: Get Your Existing Secret Keys (BEFORE Deploying)
+
+⚠️ **CRITICAL:** You **MUST** preserve your existing secret keys before deploying to Render.
+
+From your self-hosted server, retrieve these values from your `.env` file:
 ```bash
+# On your EC2/self-hosted server
 grep TRIDAPAD_SECRET_KEY .env
 grep TRIDAPAD_COOKIE_SECRET .env
 ```
 
-This is important. `TRIDAPAD_SECRET_KEY` protects your saved data source credentials. If a different key is used, TridaPad cannot read them, and your data source connections will stop working.
+Copy these exact values - you'll need them in the next step.
 
-### Step 2: Back up your database
+**Why this matters:**
+- `TRIDAPAD_SECRET_KEY` encrypts sensitive data in your database (data source credentials, API keys)
+- If you use a different key, TridaPad **cannot decrypt** existing data sources
+- All your configured database connections will be **permanently broken**
+
+### Step 2: Backup Your Existing Self-hosted TridaPad Database
 
 ```bash
 pg_dump your_database > tridapad_backup.sql
 ```
 
-### Step 3: Deploy with your keys
+### Step 3: Deploy to Render with Your Keys
 
-1. Click the **Deploy to Render** button.
-2. Before clicking **Apply**, open the `tridapad-shared` environment group and replace the generated values with your own:
-   - `TRIDAPAD_SECRET_KEY`
-   - `TRIDAPAD_COOKIE_SECRET`
-3. Click **Apply**.
+1. Click the "Deploy to Render" button
+2. **BEFORE clicking "Apply"**, edit the `tridapad-shared` environment group
+3. **Replace** the auto-generated values:
+   - Delete the generated `TRIDAPAD_SECRET_KEY` value
+   - Paste your **existing** `TRIDAPAD_SECRET_KEY` from Step 1
+   - Delete the generated `TRIDAPAD_COOKIE_SECRET` value  
+   - Paste your **existing** `TRIDAPAD_COOKIE_SECRET` from Step 1
+4. Now click "Apply" to deploy
 
-### Step 4: Import your data
+### Step 4: Import Your Data
 
-Please do not run `render-tridapad create_db`, because your backup already contains the tables.
+**Do NOT initialize the database** - your backup already has the schema.
 
-The database accepts connections only from Render services, so please allow your computer temporarily:
-1. Open `tridapad-database` in the Render dashboard, find its allowed IP addresses, and add your computer's IP address.
-2. Copy the **External Database URL** and run:
-   ```bash
-   psql "<External Database URL>" < tridapad_backup.sql
-   ```
-3. Remove your IP address from the allowed list.
+Get your Render PostgreSQL external connection string from the dashboard, then:
+```bash
+psql "postgresql://user:pass@host/database" < tridapad_backup.sql
+```
 
-Next, run `render-agentsql create_db` in the `agentsql` service's Shell, and complete Steps 1, 2 and 4 of [After Deploying](#after-deploying).
+### Step 5: Update DNS
 
-### Step 5: Update your DNS
-
-Point your domain to the new Render service, as described in [Custom Domain](#custom-domain).
+Point your domain to your new Render service URL.
 
 ## Troubleshooting
 
-| Issue | What to check |
-|---|---|
-| Database connection errors | For a new installation, make sure `render-tridapad create_db` was run. Check that `tridapad-database` is available. |
-| Queries do not run | Make sure `tridapad-worker` is running and review its logs. Check that `tridapad-redis` is available. |
-| Scheduled queries or alerts do not run | Make sure `tridapad-scheduler` is running and review its logs. |
-| Links in alerts or emails do not work | Set `TRIDAPAD_HOST` on `tridapad-worker` to your TridaPad address, then redeploy the worker. |
-| AgentSQL does not start | Check that `CORS_ORIGINS` uses the `["..."]` format and that `MCP_SERVER_URL` ends in `/mcp`. |
-| Chat does not respond | Check `TRIDAPAD_AGENTSQL_SERVICE_URL` on `tridapad` and `ANTHROPIC_API_KEY` on `agentsql`. |
-| MCP server does not start | Check that `TRIDAPAD_URL` is set on `tridapad-mcp`. |
-| Emails are not sent | Check the settings in `tridapad-mail`, confirm the sender address is verified with your provider, and review the `tridapad-worker` logs. |
+### Database Connection Errors
+- Ensure `render-tridapad create_db` was run
+- Check that `TRIDAPAD_DATABASE_URL` is set correctly
+- Verify database service is running
+
+### Workers Not Processing Queries
+- Check Key Value service is running and connected
+- Verify `TRIDAPAD_REDIS_URL` environment variable is set correctly
+- Verify `QUEUES` environment variable is set
+- Review worker logs for errors
+
+### Email Not Sending
+- Verify all SMTP credentials are correct
+- Check that `TRIDAPAD_MAIL_DEFAULT_SENDER` is a verified sender
+- Review web service logs for SMTP errors
 
 ## Support
 
-We are happy to help. Please reach out through any of these:
-
 - **Documentation**: https://docs.tridalabs.com/
-- **Docker image**: https://hub.docker.com/r/tridalabs/tridapad
-- **Website**: https://tridalabs.com
+- **Docker Image**: https://hub.docker.com/r/tridalabs/tridapad
+- **Community**: https://tridalabs.com
 - **GitHub**: https://github.com/tridalabs/tridapad
 
 ## About TridaPad
 
-TridaPad is a data analytics and visualization platform that helps anyone work with data:
+TridaPad is a powerful data analytics and visualization platform designed to enable anyone to harness the power of data. It features:
 
-- **Browser-based**: works entirely in your browser, with shareable links
-- **Query editor**: write SQL and NoSQL queries with autocomplete
-- **Visualizations**: build charts with drag-and-drop
-- **Dashboards**: bring your visualizations together
-- **Scheduled queries**: keep your data up to date automatically
-- **Alerts**: get notified when your data changes
-- **AI assistant**: ask questions in plain language with AgentSQL
-- **35+ data sources**: PostgreSQL, MySQL, BigQuery, Redshift and more
+- **Browser-based** - Everything in your browser with shareable URLs
+- **Query Editor** - Compose SQL and NoSQL queries with autocomplete
+- **Visualizations** - Beautiful charts with drag-and-drop
+- **Dashboards** - Combine visualizations into comprehensive dashboards
+- **Scheduled Queries** - Automatic data refreshes
+- **Alerts** - Get notified when data changes
+- **35+ Data Sources** - PostgreSQL, MySQL, BigQuery, Redshift, and more
 
 ## License
 
 TridaPad is a proprietary data analytics platform available for free use via Docker Hub. While the source code is not publicly available, the application is free to deploy and use.
 
-For commercial licensing, support or custom deployments, please contact us at https://tridalabs.com.
+For commercial licensing, support, or custom deployments, contact us at https://tridalabs.com.
+
+---
+
+**Ready to deploy?** Click the Deploy to Render button above! 🚀
